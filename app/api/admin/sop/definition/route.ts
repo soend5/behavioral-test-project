@@ -15,6 +15,10 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParseWithSchema } from "@/lib/json";
+import { z } from "zod";
+
+const StringArraySchema = z.array(z.string());
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,12 +47,16 @@ export async function GET(request: NextRequest) {
         priority: sop.priority,
         stateSummary: sop.stateSummary,
         coreGoal: sop.coreGoal,
-        strategyList: sop.strategyListJson
-          ? JSON.parse(sop.strategyListJson)
-          : [],
-        forbiddenList: sop.forbiddenListJson
-          ? JSON.parse(sop.forbiddenListJson)
-          : [],
+        strategyList: safeJsonParseWithSchema(
+          sop.strategyListJson,
+          StringArraySchema,
+          []
+        ),
+        forbiddenList: safeJsonParseWithSchema(
+          sop.forbiddenListJson,
+          StringArraySchema,
+          []
+        ),
         notes: sop.notes,
         createdAt: sop.createdAt,
         updatedAt: sop.updatedAt,

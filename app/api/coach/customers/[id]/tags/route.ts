@@ -44,11 +44,13 @@ export async function POST(
     }
 
     // 检查标签是否已存在
-    const existingTag = await prisma.coachTag.findFirst({
+    const existingTag = await prisma.coachTag.findUnique({
       where: {
-        customerId,
-        coachId: session.user.id,
-        tagKey,
+        customerId_coachId_tagKey: {
+          customerId,
+          coachId: session.user.id,
+          tagKey,
+        },
       },
     });
 
@@ -128,11 +130,13 @@ export async function DELETE(
     }
 
     // 查找标签
-    const tag = await prisma.coachTag.findFirst({
+    const tag = await prisma.coachTag.findUnique({
       where: {
-        customerId,
-        coachId: session.user.id,
-        tagKey,
+        customerId_coachId_tagKey: {
+          customerId,
+          coachId: session.user.id,
+          tagKey,
+        },
       },
     });
 

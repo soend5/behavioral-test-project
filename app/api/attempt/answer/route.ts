@@ -23,19 +23,48 @@ import {
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { z } from "zod";
+
+const AnswersSchema = z
+  .array(
+    z.object({
+      questionId: z.string().min(1),
+      optionId: z.string().min(1),
+    })
+  )
+  .min(1);
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { token, attemptId, answers } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
 
-    if (!token || !attemptId || !answers) {
+    const { token, attemptId, answers: answersInput } = (body ?? {}) as {
+      token?: unknown;
+      attemptId?: unknown;
+      answers?: unknown;
+    };
+
+    if (
+      typeof token !== "string" ||
+      token.length === 0 ||
+      typeof attemptId !== "string" ||
+      attemptId.length === 0 ||
+      answersInput === undefined ||
+      answersInput === null
+    ) {
       return fail(ErrorCode.BAD_REQUEST, "缺少必要参数：token, attemptId, answers");
     }
 
-    if (!Array.isArray(answers) || answers.length === 0) {
+    const parsedAnswers = AnswersSchema.safeParse(answersInput);
+    if (!parsedAnswers.success) {
       return fail(ErrorCode.VALIDATION_ERROR, "answers 必须是非空数组");
     }
+    const answers = parsedAnswers.data;
 
     // 使用门禁函数：token → invite 校验（拒绝 completed/expired）
     const invite = await requireInviteByToken(prisma, token, {
@@ -52,13 +81,29 @@ export async function POST(request: NextRequest) {
     // 使用门禁函数：断言 attempt 未提交
     assertAttemptNotSubmitted(attempt);
 
+    // 绑定题库：只允许提交属于当前 invite 的 quizVersion + version 的题目/选项
+    const quiz = await prisma.quiz.findUnique({
+      where: {
+        quizVersion_version: {
+          quizVersion: invite.quizVersion,
+          version: invite.version,
+        },
+      },
+      select: { id: true, status: true },
+    });
+
+    if (!quiz || quiz.status !== "active") {
+      return fail(ErrorCode.NOT_FOUND, "未找到对应的题库");
+    }
+
     // 验证答案格式和题目/选项是否存在
-    const questionIds = answers.map((a: any) => a.questionId);
-    const optionIds = answers.map((a: any) => a.optionId);
+    const questionIds = Array.from(new Set(answers.map((a) => a.questionId)));
+    const optionIds = Array.from(new Set(answers.map((a) => a.optionId)));
 
     const questions = await prisma.question.findMany({
       where: {
         id: { in: questionIds },
+        quizId: quiz.id,
         status: "active",
       },
     });
@@ -66,6 +111,7 @@ export async function POST(request: NextRequest) {
     const options = await prisma.option.findMany({
       where: {
         id: { in: optionIds },
+        question: { quizId: quiz.id },
       },
       include: {
         question: true,
@@ -112,12 +158,22 @@ export async function POST(request: NextRequest) {
     }
 
     // 更新 attempt
-    await prisma.attempt.update({
-      where: { id: attemptId },
+    const updated = await prisma.attempt.updateMany({
+      where: {
+        id: attemptId,
+        submittedAt: null,
+      },
       data: {
         answersJson: JSON.stringify(existingAnswers),
       },
     });
+
+    if (updated.count === 0) {
+      return fail(
+        ErrorCode.ATTEMPT_ALREADY_SUBMITTED,
+        "测评已提交，禁止继续答题"
+      );
+    }
 
     // 写入审计日志
     await writeAudit(

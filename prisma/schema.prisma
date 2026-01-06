@@ -51,6 +51,7 @@ model Customer {
   attempts  Attempt[]
   coachTags CoachTag[]
 
+  @@index([coachId])
   @@map("customers")
 }
 
@@ -71,6 +72,8 @@ model Invite {
   coach       User     @relation(fields: [coachId], references: [id])
   attempts    Attempt[]
 
+  @@index([coachId, status, createdAt])
+  @@index([customerId, version, status])
   @@map("invites")
 }
 
@@ -96,6 +99,9 @@ model Attempt {
   customer        Customer @relation(fields: [customerId], references: [id])
   coach           User     @relation(fields: [coachId], references: [id])
 
+  @@index([inviteId, submittedAt, startedAt])
+  @@index([customerId, submittedAt])
+  @@index([coachId, submittedAt])
   @@map("attempts")
 }
 
@@ -111,6 +117,7 @@ model CoachTag {
   customer   Customer @relation(fields: [customerId], references: [id])
   coach      User     @relation(fields: [coachId], references: [id])
 
+  @@unique([customerId, coachId, tagKey])
   @@map("coach_tags")
 }
 
@@ -133,6 +140,7 @@ model SopDefinition {
   rules          SopRule[]
   stageMaps      SopStageMap[]
 
+  @@index([status, sopStage, priority])
   @@map("sop_definition")
 }
 
@@ -150,6 +158,7 @@ model SopRule {
   // 关系
   sop             SopDefinition @relation(fields: [sopId], references: [sopId])
 
+  @@index([status, requiredStage, sopId])
   @@map("sop_rule")
 }
 
@@ -181,6 +190,8 @@ model SopStageMap {
   sop       SopDefinition @relation(fields: [sopId], references: [sopId])
   stage     CoachingStage @relation(fields: [stageId], references: [stageId])
 
+  @@unique([sopId, stageId])
+  @@index([stageId, isDefault])
   @@map("sop_stage_map")
 }
 
@@ -196,6 +207,8 @@ model Quiz {
   // 关系
   questions   Question[]
 
+  @@unique([quizVersion, version])
+  @@index([status])
   @@map("quiz")
 }
 
@@ -211,6 +224,8 @@ model Question {
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   options   Option[]
 
+  @@unique([quizId, orderNo])
+  @@index([quizId, status])
   @@map("questions")
 }
 
@@ -225,6 +240,7 @@ model Option {
   // 关系
   question        Question @relation(fields: [questionId], references: [id])
 
+  @@unique([questionId, orderNo])
   @@map("options")
 }
 
@@ -241,6 +257,8 @@ model AuditLog {
   // 关系
   actorUser    User     @relation("ActorUser", fields: [actorUserId], references: [id])
 
+  @@index([actorUserId, createdAt])
+  @@index([action, createdAt])
   @@map("audit_log")
 }
 

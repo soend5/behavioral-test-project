@@ -10,6 +10,8 @@ import { PrismaClient, Prisma } from "@prisma/client";
 import { hashToken } from "./token";
 import { ErrorCode } from "./errors";
 
+type DbClient = PrismaClient | Prisma.TransactionClient;
+
 type Session = {
   user: {
     id: string;
@@ -71,7 +73,7 @@ export async function requireCoach(): Promise<Session> {
  * admin 可以访问所有 customer
  */
 export async function requireCoachOwnsCustomer(
-  prisma: PrismaClient,
+  prisma: DbClient,
   coachId: string,
   customerId: string
 ) {
@@ -84,7 +86,7 @@ export async function requireCoachOwnsCustomer(
       where: { id: customerId },
     });
     if (!customer) {
-      throw new Error(ErrorCode.NOT_FOUND);
+      throw new Error(ErrorCode.CUSTOMER_NOT_FOUND);
     }
     return customer;
   }
@@ -99,7 +101,7 @@ export async function requireCoachOwnsCustomer(
   });
 
   if (!customer) {
-    throw new Error(ErrorCode.NOT_FOUND);
+    throw new Error(ErrorCode.CUSTOMER_NOT_FOUND);
   }
 
   if (customer.coachId !== coachId) {
@@ -114,7 +116,7 @@ export async function requireCoachOwnsCustomer(
  * admin 可以访问所有 invite
  */
 export async function requireCoachOwnsInvite(
-  prisma: PrismaClient,
+  prisma: DbClient,
   coachId: string,
   inviteId: string
 ) {
@@ -127,7 +129,7 @@ export async function requireCoachOwnsInvite(
       where: { id: inviteId },
     });
     if (!invite) {
-      throw new Error(ErrorCode.NOT_FOUND);
+      throw new Error(ErrorCode.INVITE_NOT_FOUND);
     }
     return invite;
   }
@@ -142,7 +144,7 @@ export async function requireCoachOwnsInvite(
   });
 
   if (!invite) {
-    throw new Error(ErrorCode.NOT_FOUND);
+    throw new Error(ErrorCode.INVITE_NOT_FOUND);
   }
 
   if (invite.coachId !== coachId) {
@@ -157,7 +159,7 @@ export async function requireCoachOwnsInvite(
  * admin 可以访问所有 attempt
  */
 export async function requireCoachOwnsAttempt(
-  prisma: PrismaClient,
+  prisma: DbClient,
   coachId: string,
   attemptId: string
 ) {
@@ -213,7 +215,7 @@ type InviteWithoutRelations = Prisma.InviteGetPayload<{}>;
  * @param options.includeRelations 是否包含关联数据（customer, coach）
  */
 export async function requireInviteByToken(
-  prisma: PrismaClient,
+  prisma: DbClient,
   token: string,
   options: {
     allowStatuses?: string[];
@@ -221,7 +223,7 @@ export async function requireInviteByToken(
   }
 ): Promise<InviteWithRelations>;
 export async function requireInviteByToken(
-  prisma: PrismaClient,
+  prisma: DbClient,
   token: string,
   options?: {
     allowStatuses?: string[];
@@ -229,7 +231,7 @@ export async function requireInviteByToken(
   }
 ): Promise<InviteWithoutRelations>;
 export async function requireInviteByToken(
-  prisma: PrismaClient,
+  prisma: DbClient,
   token: string,
   options: {
     allowStatuses?: string[];
@@ -304,7 +306,7 @@ export async function requireInviteByToken(
  * @returns attempt 或 null（如果不存在）
  */
 export async function requireAttemptByInvite(
-  prisma: PrismaClient,
+  prisma: DbClient,
   inviteId: string
 ) {
   const attempt = await prisma.attempt.findFirst({
@@ -342,7 +344,7 @@ export function assertInviteAllowsSubmit(invite: { status: string }) {
  * 验证 attempt 属于指定的 invite
  */
 export async function requireAttemptOwnership(
-  prisma: PrismaClient,
+  prisma: DbClient,
   attemptId: string,
   inviteId: string
 ) {

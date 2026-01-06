@@ -11,6 +11,10 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParseWithSchema } from "@/lib/json";
+import { z } from "zod";
+
+const StringArraySchema = z.array(z.string());
 
 export async function GET(request: NextRequest) {
   try {
@@ -47,10 +51,10 @@ export async function GET(request: NextRequest) {
         sop: rule.sop,
         requiredStage: rule.requiredStage,
         requiredTags: rule.requiredTagsJson
-          ? JSON.parse(rule.requiredTagsJson)
+          ? safeJsonParseWithSchema(rule.requiredTagsJson, StringArraySchema, [])
           : [],
         excludedTags: rule.excludedTagsJson
-          ? JSON.parse(rule.excludedTagsJson)
+          ? safeJsonParseWithSchema(rule.excludedTagsJson, StringArraySchema, [])
           : [],
         confidence: rule.confidence,
         status: rule.status,

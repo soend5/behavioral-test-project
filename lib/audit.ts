@@ -1,4 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 /**
  * 写入审计日志
@@ -10,7 +12,7 @@ import { PrismaClient } from "@prisma/client";
  * @param metaJson 元数据 JSON 对象
  */
 export async function writeAudit(
-  prisma: PrismaClient,
+  prisma: DbClient,
   actorUserId: string | null,
   action: string,
   targetType: string | null = null,

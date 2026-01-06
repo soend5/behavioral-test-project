@@ -13,6 +13,9 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/authz";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParse } from "@/lib/json";
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -79,7 +82,7 @@ export async function GET(request: NextRequest) {
         action: log.action,
         targetType: log.targetType,
         targetId: log.targetId,
-        metaJson: log.metaJson ? JSON.parse(log.metaJson) : null,
+        metaJson: log.metaJson ? safeJsonParse(log.metaJson) : null,
         createdAt: log.createdAt,
       })),
       total,

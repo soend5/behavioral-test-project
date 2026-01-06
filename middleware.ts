@@ -7,7 +7,7 @@ export default withAuth(
     const path = req.nextUrl.pathname;
 
     // Admin 路由保护
-    if (path.startsWith("/admin")) {
+    if (path.startsWith("/admin") && !path.startsWith("/admin/login")) {
       if (!token || token.role !== "admin") {
         return NextResponse.redirect(new URL("/admin/login", req.url));
       }
@@ -24,26 +24,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token, req }) => {
-        const path = req.nextUrl.pathname;
-
-        // 公开路由不需要认证
-        if (
-          path === "/" ||
-          path.startsWith("/t/") ||
-          path.startsWith("/api/attempt")
-        ) {
-          return true;
-        }
-
-        // 登录页面不需要认证
-        if (path === "/coach/login" || path === "/admin/login") {
-          return true;
-        }
-
-        // 其他路由需要认证
-        return !!token;
-      },
+      authorized: () => true,
     },
   }
 );
@@ -52,7 +33,6 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/coach/:path*",
-    "/api/:path*",
   ],
 };
 

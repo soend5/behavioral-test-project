@@ -15,6 +15,7 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParse } from "@/lib/json";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
         orderNo: opt.orderNo,
         text: opt.text,
         scorePayloadJson: opt.scorePayloadJson
-          ? JSON.parse(opt.scorePayloadJson)
+          ? safeJsonParse(opt.scorePayloadJson)
           : null,
         createdAt: opt.createdAt,
       })),

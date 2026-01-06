@@ -12,6 +12,7 @@
  */
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import {
   requireInviteByToken,
   requireAttemptByInvite,
@@ -19,15 +20,26 @@ import {
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { z } from "zod";
+
+const StartAttemptBodySchema = z.object({
+  token: z.string().min(1),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { token } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
 
-    if (!token) {
+    const parsedBody = StartAttemptBodySchema.safeParse(body);
+    if (!parsedBody.success) {
       return fail(ErrorCode.BAD_REQUEST, "缺少 token 参数");
     }
+    const { token } = parsedBody.data;
 
     // 使用门禁函数：token → invite 校验（拒绝 completed/expired）
     const invite = await requireInviteByToken(prisma, token, {
@@ -35,50 +47,71 @@ export async function POST(request: NextRequest) {
       includeRelations: false,
     });
 
-    // 使用门禁函数：幂等性检查（查找未提交的 attempt）
-    const existingAttempt = await requireAttemptByInvite(prisma, invite.id);
+    let attempt: { id: string; quizVersion: string; version: string };
+    let created = false;
 
-    if (existingAttempt) {
-      // 幂等：返回现有 attempt
-      return ok({
-        attemptId: existingAttempt.id,
-        quizVersion: existingAttempt.quizVersion,
-        version: existingAttempt.version,
+    try {
+      const txResult = await prisma.$transaction(async (tx) => {
+        const existingAttempt = await requireAttemptByInvite(tx, invite.id);
+        if (existingAttempt) {
+          return { attempt: existingAttempt, created: false };
+        }
+
+        if (invite.status === "active") {
+          await tx.invite.update({
+            where: { id: invite.id },
+            data: { status: "entered" },
+          });
+        }
+
+        const createdAttempt = await tx.attempt.create({
+          data: {
+            inviteId: invite.id,
+            customerId: invite.customerId,
+            coachId: invite.coachId,
+            version: invite.version,
+            quizVersion: invite.quizVersion,
+            startedAt: new Date(),
+          },
+          select: { id: true, quizVersion: true, version: true },
+        });
+
+        return { attempt: createdAttempt, created: true };
       });
-    }
 
-    // 更新 invite 状态：active -> entered
-    if (invite.status === "active") {
-      await prisma.invite.update({
-        where: { id: invite.id },
-        data: { status: "entered" },
-      });
+      attempt = txResult.attempt;
+      created = txResult.created;
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const existingAttempt = await requireAttemptByInvite(prisma, invite.id);
+        if (existingAttempt) {
+          attempt = existingAttempt;
+          created = false;
+        } else {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
     }
-
-    // 创建新的 attempt
-    const attempt = await prisma.attempt.create({
-      data: {
-        inviteId: invite.id,
-        customerId: invite.customerId,
-        coachId: invite.coachId,
-        version: invite.version,
-        quizVersion: invite.quizVersion,
-        startedAt: new Date(),
-      },
-    });
 
     // 写入审计日志
-    await writeAudit(
-      prisma,
-      invite.coachId,
-      "attempt.start",
-      "attempt",
-      attempt.id,
-      {
-        inviteId: invite.id,
-        customerId: invite.customerId,
-      }
-    );
+    if (created) {
+      await writeAudit(
+        prisma,
+        invite.coachId,
+        "attempt.start",
+        "attempt",
+        attempt.id,
+        {
+          inviteId: invite.id,
+          customerId: invite.customerId,
+        }
+      );
+    }
 
     return ok({
       attemptId: attempt.id,

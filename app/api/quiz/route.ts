@@ -14,6 +14,8 @@ import { requireInviteByToken } from "@/lib/authz";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -29,12 +31,13 @@ export async function GET(request: NextRequest) {
       includeRelations: false,
     });
 
-    // 获取题目列表
-    const quiz = await prisma.quiz.findFirst({
+    // 获取题目列表（依赖 quizVersion + version 的唯一约束）
+    const quiz = await prisma.quiz.findUnique({
       where: {
-        quizVersion: invite.quizVersion,
-        version: invite.version,
-        status: "active",
+        quizVersion_version: {
+          quizVersion: invite.quizVersion,
+          version: invite.version,
+        },
       },
       include: {
         questions: {
@@ -49,7 +52,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    if (!quiz) {
+    if (!quiz || quiz.status !== "active") {
       return fail(ErrorCode.NOT_FOUND, "未找到对应的题库");
     }
 

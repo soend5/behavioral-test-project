@@ -14,6 +14,7 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParse } from "@/lib/json";
 
 export async function PATCH(
   request: NextRequest,
@@ -88,7 +89,7 @@ export async function PATCH(
         orderNo: updatedOption.orderNo,
         text: updatedOption.text,
         scorePayloadJson: updatedOption.scorePayloadJson
-          ? JSON.parse(updatedOption.scorePayloadJson)
+          ? safeJsonParse(updatedOption.scorePayloadJson)
           : null,
         updatedAt: updatedOption.createdAt,
       },

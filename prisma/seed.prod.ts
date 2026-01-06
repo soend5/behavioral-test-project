@@ -28,7 +28,12 @@ async function main() {
   });
 
   if (!admin) {
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new Error(
+        "缺少 ADMIN_PASSWORD：生产环境禁止使用默认口令，请显式设置强密码后再运行 seed:prod"
+      );
+    }
     const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
     admin = await prisma.user.create({
@@ -52,7 +57,12 @@ async function main() {
   });
 
   if (!coach) {
-    const coachPassword = process.env.COACH_PASSWORD || "coach123";
+    const coachPassword = process.env.COACH_PASSWORD;
+    if (!coachPassword) {
+      throw new Error(
+        "缺少 COACH_PASSWORD：生产环境禁止使用默认口令，请显式设置强密码后再运行 seed:prod"
+      );
+    }
     const coachPasswordHash = await bcrypt.hash(coachPassword, 10);
 
     coach = await prisma.user.create({
@@ -73,10 +83,12 @@ async function main() {
   const quizVersion = "v1";
 
   // Fast 版本
-  let fastQuiz = await prisma.quiz.findFirst({
+  let fastQuiz = await prisma.quiz.findUnique({
     where: {
-      quizVersion,
-      version: "fast",
+      quizVersion_version: {
+        quizVersion,
+        version: "fast",
+      },
     },
   });
 
@@ -95,10 +107,12 @@ async function main() {
   }
 
   // Pro 版本
-  let proQuiz = await prisma.quiz.findFirst({
+  let proQuiz = await prisma.quiz.findUnique({
     where: {
-      quizVersion,
-      version: "pro",
+      quizVersion_version: {
+        quizVersion,
+        version: "pro",
+      },
     },
   });
 

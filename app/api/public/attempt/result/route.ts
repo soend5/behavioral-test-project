@@ -13,6 +13,12 @@ import { prisma } from "@/lib/prisma";
 import { requireInviteByToken } from "@/lib/authz";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParse, safeJsonParseWithSchema } from "@/lib/json";
+import { z } from "zod";
+
+const StringArraySchema = z.array(z.string());
+
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
@@ -45,9 +51,9 @@ export async function GET(request: NextRequest) {
     }
 
     // 解析结果数据
-    const tags = attempt.tagsJson ? JSON.parse(attempt.tagsJson) : [];
+    const tags = safeJsonParseWithSchema(attempt.tagsJson, StringArraySchema, []);
     const resultSummary = attempt.resultSummaryJson
-      ? JSON.parse(attempt.resultSummaryJson)
+      ? safeJsonParse(attempt.resultSummaryJson)
       : null;
 
     return ok({

@@ -11,8 +11,8 @@
 1. 登录 [Supabase Dashboard](https://app.supabase.com/)
 2. 创建新项目（或使用现有项目）
 3. 记录以下信息：
-   - Project URL    https://yrwsdfubffvrdrsjdmnp.supabase.co
-   - Database Password（首次创建时设置 8xlyQ0lJInB2nYHi）
+   - Project URL    https://your-project.supabase.co
+   - Database Password（首次创建时设置 [YOUR-PASSWORD]）
    - Connection String（在 Settings → Database → Connection string 中）
 
 ### 2. 获取数据库连接字符串
@@ -22,7 +22,7 @@
 - 找到 **Connection string** → **URI**
 - 格式：`postgresql://postgres:[YOUR-PASSWORD]@[HOST]:5432/postgres?pgbouncer=true&connection_limit=1`
 - 复制完整的连接字符串
-postgresql://postgres:[YOUR-PASSWORD]@db.yrwsdfubffvrdrsjdmnp.supabase.co:5432/postgres
+postgresql://postgres:[YOUR-PASSWORD]@db.your-project.supabase.co:5432/postgres
 
 ### 3. 配置数据库连接池（推荐）
 
@@ -61,9 +61,9 @@ openssl rand -base64 32
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-### 生产环境种子数据变量（可选）
+### 生产环境种子数据变量（首次运行必需）
 
-如果需要自定义初始账号：
+首次运行 `npm run seed:prod` 创建初始账号时必须设置：
 
 ```bash
 ADMIN_USERNAME="admin"

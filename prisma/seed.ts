@@ -61,10 +61,12 @@ async function main() {
   const quizVersion = "v1";
 
   // Fast 版本
-  let fastQuiz = await prisma.quiz.findFirst({
+  let fastQuiz = await prisma.quiz.findUnique({
     where: {
-      quizVersion,
-      version: "fast",
+      quizVersion_version: {
+        quizVersion,
+        version: "fast",
+      },
     },
   });
 
@@ -83,10 +85,12 @@ async function main() {
   }
 
   // Pro 版本
-  let proQuiz = await prisma.quiz.findFirst({
+  let proQuiz = await prisma.quiz.findUnique({
     where: {
-      quizVersion,
-      version: "pro",
+      quizVersion_version: {
+        quizVersion,
+        version: "pro",
+      },
     },
   });
 

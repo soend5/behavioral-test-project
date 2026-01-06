@@ -5,7 +5,7 @@
  * - requireInviteByToken (拒绝 completed/expired)
  * - requireAttemptOwnership (验证 attempt 属于该 invite)
  * - assertInviteAllowsSubmit (断言 invite 允许提交)
- * - assertAttemptNotSubmitted (断言 attempt 未提交，幂等性处理)
+ * - 通过 updateMany + submittedAt=null 实现并发幂等
  * 
  * 校验点：
  * ✅ Token 校验：hash(token) == invites.token_hash
@@ -19,115 +19,232 @@ import {
   requireInviteByToken,
   requireAttemptOwnership,
   assertInviteAllowsSubmit,
-  assertAttemptNotSubmitted,
 } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { calculateScores } from "@/lib/scoring";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParse } from "@/lib/json";
+import { z } from "zod";
+
+const SubmitAttemptBodySchema = z.object({
+  token: z.string().min(1),
+  attemptId: z.string().min(1),
+});
+
+const AnswersSchema = z.record(z.string().min(1), z.string().min(1));
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { token, attemptId } = body;
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
 
-    if (!token || !attemptId) {
+    const parsedBody = SubmitAttemptBodySchema.safeParse(body);
+    if (!parsedBody.success) {
       return fail(ErrorCode.BAD_REQUEST, "缺少必要参数：token, attemptId");
     }
 
-    // 使用门禁函数：token → invite 校验（拒绝 completed/expired）
-    const invite = await requireInviteByToken(prisma, token, {
-      allowStatuses: ["active", "entered"],
-      includeRelations: false,
+    const { token, attemptId } = parsedBody.data;
+
+    const txResult = await prisma.$transaction(async (tx) => {
+      const invite = await requireInviteByToken(tx, token, {
+        allowStatuses: ["active", "entered"],
+        includeRelations: false,
+      });
+
+      assertInviteAllowsSubmit(invite);
+
+      const attempt = await requireAttemptOwnership(tx, attemptId, invite.id);
+      if (attempt.submittedAt !== null) {
+        return {
+          status: "already_submitted" as const,
+          attemptId: attempt.id,
+          submittedAt: attempt.submittedAt,
+          resultSummaryJson: attempt.resultSummaryJson,
+        };
+      }
+
+      const submittedAt = new Date();
+      const locked = await tx.attempt.updateMany({
+        where: {
+          id: attemptId,
+          submittedAt: null,
+        },
+        data: {
+          submittedAt,
+        },
+      });
+
+      if (locked.count === 0) {
+        const existingAttempt = await tx.attempt.findUnique({
+          where: { id: attemptId },
+          select: {
+            id: true,
+            inviteId: true,
+            submittedAt: true,
+            resultSummaryJson: true,
+          },
+        });
+
+        if (!existingAttempt) {
+          throw new Error(ErrorCode.ATTEMPT_NOT_FOUND);
+        }
+
+        if (existingAttempt.inviteId !== invite.id) {
+          throw new Error(ErrorCode.FORBIDDEN);
+        }
+
+        return {
+          status: "already_submitted" as const,
+          attemptId: existingAttempt.id,
+          submittedAt: existingAttempt.submittedAt,
+          resultSummaryJson: existingAttempt.resultSummaryJson,
+        };
+      }
+
+      const lockedAttempt = await tx.attempt.findUnique({
+        where: { id: attemptId },
+      });
+
+      if (!lockedAttempt) {
+        throw new Error(ErrorCode.ATTEMPT_NOT_FOUND);
+      }
+
+      if (lockedAttempt.inviteId !== invite.id) {
+        throw new Error(ErrorCode.FORBIDDEN);
+      }
+
+      if (!lockedAttempt.answersJson) {
+        throw new Error(ErrorCode.BAD_REQUEST);
+      }
+
+      let answersRaw: unknown;
+      try {
+        answersRaw = JSON.parse(lockedAttempt.answersJson);
+      } catch {
+        throw new Error(ErrorCode.BAD_REQUEST);
+      }
+
+      const parsedAnswers = AnswersSchema.safeParse(answersRaw);
+      if (!parsedAnswers.success || Object.keys(parsedAnswers.data).length === 0) {
+        throw new Error(ErrorCode.BAD_REQUEST);
+      }
+
+      const answers = parsedAnswers.data;
+
+      const quiz = await tx.quiz.findUnique({
+        where: {
+          quizVersion_version: {
+            quizVersion: invite.quizVersion,
+            version: invite.version,
+          },
+        },
+        select: { id: true, status: true },
+      });
+
+      if (!quiz || quiz.status !== "active") {
+        throw new Error(ErrorCode.NOT_FOUND);
+      }
+
+      const optionIds = Array.from(new Set(Object.values(answers)));
+      const options = await tx.option.findMany({
+        where: {
+          id: { in: optionIds },
+          question: {
+            quizId: quiz.id,
+            status: "active",
+          },
+        },
+        select: {
+          id: true,
+          questionId: true,
+          scorePayloadJson: true,
+        },
+      });
+
+      if (options.length !== optionIds.length) {
+        throw new Error(ErrorCode.VALIDATION_ERROR);
+      }
+
+      const optionMap = new Map(options.map((o) => [o.id, o]));
+      for (const [questionId, optionId] of Object.entries(answers)) {
+        const option = optionMap.get(optionId);
+        if (!option || option.questionId !== questionId) {
+          throw new Error(ErrorCode.VALIDATION_ERROR);
+        }
+      }
+
+      const attemptVersion =
+        lockedAttempt.version === "fast" || lockedAttempt.version === "pro"
+          ? lockedAttempt.version
+          : null;
+      if (!attemptVersion) {
+        throw new Error(ErrorCode.INTERNAL_ERROR);
+      }
+
+      const { scoresJson, tagsJson, stage, resultSummaryJson } =
+        await calculateScores(answers, options, attemptVersion);
+
+      await tx.attempt.update({
+        where: { id: attemptId },
+        data: {
+          answersJson: JSON.stringify(answers),
+          scoresJson,
+          tagsJson,
+          stage,
+          resultSummaryJson,
+          matchedSopId: null, // MVP 暂不匹配 SOP，保留字段
+        },
+      });
+
+      await tx.invite.update({
+        where: { id: invite.id },
+        data: { status: "completed" },
+      });
+
+      return {
+        status: "submitted" as const,
+        attemptId,
+        submittedAt,
+        resultSummaryJson,
+        coachId: invite.coachId,
+        inviteId: invite.id,
+        customerId: invite.customerId,
+      };
     });
 
-    // 使用门禁函数：验证 attempt 属于该 invite
-    let attempt = await requireAttemptOwnership(prisma, attemptId, invite.id);
-
-    // 幂等性：如果已提交，返回现有结果
-    if (attempt.submittedAt !== null) {
+    if (txResult.status === "already_submitted") {
       return ok({
-        attemptId: attempt.id,
-        submittedAt: attempt.submittedAt,
-        result: attempt.resultSummaryJson
-          ? JSON.parse(attempt.resultSummaryJson)
+        attemptId: txResult.attemptId,
+        submittedAt: txResult.submittedAt?.toISOString() ?? null,
+        result: txResult.resultSummaryJson
+          ? safeJsonParse(txResult.resultSummaryJson)
           : null,
       });
     }
 
-    // 使用门禁函数：断言 invite 允许提交
-    assertInviteAllowsSubmit(invite);
-
-    // 使用门禁函数：断言 attempt 未提交（仅在未提交时检查）
-    assertAttemptNotSubmitted(attempt);
-
-    // 检查答案是否完整
-    if (!attempt.answersJson) {
-      return fail(ErrorCode.BAD_REQUEST, "答案不完整，无法提交");
-    }
-
-    const answers = JSON.parse(attempt.answersJson);
-    if (Object.keys(answers).length === 0) {
-      return fail(ErrorCode.BAD_REQUEST, "答案不完整，无法提交");
-    }
-
-    // 获取所有选项用于评分
-    const optionIds = Object.values(answers) as string[];
-    const options = await prisma.option.findMany({
-      where: {
-        id: { in: optionIds },
-      },
-    });
-
-    // 计算分数和标签
-    const { scoresJson, tagsJson, stage, resultSummaryJson } =
-      await calculateScores(answers, options, attempt.version as "fast" | "pro");
-
-    // 更新 attempt（提交）
-    const submittedAt = new Date();
-    await prisma.attempt.update({
-      where: { id: attemptId },
-      data: {
-        submittedAt,
-        answersJson: JSON.stringify(answers),
-        scoresJson,
-        tagsJson,
-        stage,
-        resultSummaryJson,
-        matchedSopId: null, // MVP 暂不匹配 SOP，保留字段
-      },
-    });
-
-    // 更新 invite 状态：entered -> completed
-    await prisma.invite.update({
-      where: { id: invite.id },
-      data: { status: "completed" },
-    });
-
-    // 写入审计日志（必须包含 invite_id, attempt_id）
-    await writeAudit(
-      prisma,
-      invite.coachId,
-      "client.submit_attempt",
-      "attempt",
+    await writeAudit(prisma, txResult.coachId, "client.submit_attempt", "attempt", attemptId, {
+      inviteId: txResult.inviteId,
       attemptId,
-      {
-        inviteId: invite.id,
-        attemptId: attemptId,
-        customerId: invite.customerId,
-      }
-    );
+      customerId: txResult.customerId,
+    });
 
     return ok({
-      attemptId: attempt.id,
-      submittedAt: submittedAt.toISOString(),
-      result: JSON.parse(resultSummaryJson),
+      attemptId,
+      submittedAt: txResult.submittedAt.toISOString(),
+      result: safeJsonParse(txResult.resultSummaryJson),
     });
   } catch (error: any) {
     if (
       error.message === ErrorCode.INVITE_INVALID ||
       error.message === ErrorCode.INVITE_EXPIRED_OR_COMPLETED ||
       error.message === ErrorCode.BAD_REQUEST ||
+      error.message === ErrorCode.NOT_FOUND ||
+      error.message === ErrorCode.VALIDATION_ERROR ||
       error.message === ErrorCode.ATTEMPT_NOT_FOUND ||
       error.message === ErrorCode.FORBIDDEN ||
       error.message === ErrorCode.ATTEMPT_ALREADY_SUBMITTED
@@ -135,7 +252,9 @@ export async function POST(request: NextRequest) {
       const messageMap: Record<string, string> = {
         [ErrorCode.INVITE_INVALID]: "邀请 token 无效或不存在",
         [ErrorCode.INVITE_EXPIRED_OR_COMPLETED]: "邀请已过期或已完成，禁止继续操作",
-        [ErrorCode.BAD_REQUEST]: "缺少必要参数：token, attemptId",
+        [ErrorCode.BAD_REQUEST]: "答案不完整，无法提交",
+        [ErrorCode.NOT_FOUND]: "未找到对应的题库",
+        [ErrorCode.VALIDATION_ERROR]: "答案包含无效选项",
         [ErrorCode.ATTEMPT_NOT_FOUND]: "测评记录不存在",
         [ErrorCode.FORBIDDEN]: "无权访问此测评记录",
         [ErrorCode.ATTEMPT_ALREADY_SUBMITTED]: "测评已提交，禁止继续操作",

@@ -20,6 +20,10 @@ import { writeAudit } from "@/lib/audit";
 import { matchSOP, getDefaultRealtimePanel } from "@/lib/sop-matcher";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParseWithSchema } from "@/lib/json";
+import { z } from "zod";
+
+const StringArraySchema = z.array(z.string());
 
 export async function GET(
   request: NextRequest,
@@ -89,7 +93,7 @@ export async function GET(
     if (latestAttempt) {
       // 有 attempt：基于 stage + tags 匹配 SOP
       const systemTags = latestAttempt.tagsJson
-        ? JSON.parse(latestAttempt.tagsJson)
+        ? safeJsonParseWithSchema(latestAttempt.tagsJson, StringArraySchema, [])
         : [];
       const coachTagKeys = coachTags.map((t) => t.tagKey);
       const allTags = [...systemTags, ...coachTagKeys];
@@ -149,7 +153,7 @@ export async function GET(
             version: latestAttempt.version,
             submittedAt: latestAttempt.submittedAt,
             tags: latestAttempt.tagsJson
-              ? JSON.parse(latestAttempt.tagsJson)
+              ? safeJsonParseWithSchema(latestAttempt.tagsJson, StringArraySchema, [])
               : [],
             stage: latestAttempt.stage,
           }
@@ -159,7 +163,7 @@ export async function GET(
         version: a.version,
         quizVersion: a.quizVersion,
         submittedAt: a.submittedAt,
-        tags: a.tagsJson ? JSON.parse(a.tagsJson) : [],
+        tags: safeJsonParseWithSchema(a.tagsJson, StringArraySchema, []),
         stage: a.stage,
       })),
       coachTags: coachTags.map((t) => ({

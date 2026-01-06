@@ -33,6 +33,18 @@ export async function POST(request: NextRequest) {
       return fail(ErrorCode.INVALID_INPUT, "缺少必要参数：customerId, version, quizVersion");
     }
 
+    if (version !== "fast" && version !== "pro") {
+      return fail(ErrorCode.VALIDATION_ERROR, "version 必须是 'fast' 或 'pro'");
+    }
+
+    let parsedExpiresAt: Date | null = null;
+    if (expiresAt) {
+      parsedExpiresAt = new Date(expiresAt);
+      if (Number.isNaN(parsedExpiresAt.getTime())) {
+        return fail(ErrorCode.VALIDATION_ERROR, "expiresAt 格式错误");
+      }
+    }
+
     // 验证 customer ownership
     await requireCoachOwnsCustomer(prisma, session.user.id, customerId);
 
@@ -80,7 +92,7 @@ export async function POST(request: NextRequest) {
         coachId: session.user.id,
         version,
         quizVersion,
-        expiresAt: expiresAt ? new Date(expiresAt) : null,
+        expiresAt: parsedExpiresAt,
       },
     });
 
@@ -99,7 +111,7 @@ export async function POST(request: NextRequest) {
     );
 
     // 构建完整 URL
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
     const inviteUrl = `${baseUrl}/t/${token}`;
 
     return ok({

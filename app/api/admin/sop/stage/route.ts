@@ -11,6 +11,10 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { safeJsonParseWithSchema } from "@/lib/json";
+import { z } from "zod";
+
+const StringArraySchema = z.array(z.string());
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,12 +30,16 @@ export async function GET(request: NextRequest) {
         stageName: stage.stageName,
         stageDesc: stage.stageDesc,
         uiColor: stage.uiColor,
-        allowActions: stage.allowActions
-          ? JSON.parse(stage.allowActions)
-          : [],
-        forbidActions: stage.forbidActions
-          ? JSON.parse(stage.forbidActions)
-          : [],
+        allowActions: safeJsonParseWithSchema(
+          stage.allowActions,
+          StringArraySchema,
+          []
+        ),
+        forbidActions: safeJsonParseWithSchema(
+          stage.forbidActions,
+          StringArraySchema,
+          []
+        ),
         createdAt: stage.createdAt,
         updatedAt: stage.updatedAt,
       })),

@@ -10,6 +10,10 @@
  */
 
 import { PrismaClient } from "@prisma/client";
+import { z } from "zod";
+import { safeJsonParseWithSchema } from "./json";
+
+const StringArraySchema = z.array(z.string());
 
 interface SopMatchResult {
   sopId: string;
@@ -63,12 +67,16 @@ export async function matchSOP(
   const matchedRules = rules
     .filter((rule) => {
     // 解析 required_tags 和 excluded_tags
-    const requiredTags = rule.requiredTagsJson
-      ? JSON.parse(rule.requiredTagsJson)
-      : [];
-    const excludedTags = rule.excludedTagsJson
-      ? JSON.parse(rule.excludedTagsJson)
-      : [];
+    const requiredTags = safeJsonParseWithSchema(
+      rule.requiredTagsJson,
+      StringArraySchema,
+      []
+    );
+    const excludedTags = safeJsonParseWithSchema(
+      rule.excludedTagsJson,
+      StringArraySchema,
+      []
+    );
 
     // 检查 required_tags 是否全包含
     const hasAllRequired = requiredTags.every((tag: string) =>
@@ -102,12 +110,16 @@ export async function matchSOP(
   const sop = matchedRule.sop;
 
   // 解析策略和禁用列表
-  const strategyList = sop.strategyListJson
-    ? JSON.parse(sop.strategyListJson)
-    : [];
-  const forbiddenList = sop.forbiddenListJson
-    ? JSON.parse(sop.forbiddenListJson)
-    : [];
+  const strategyList = safeJsonParseWithSchema(
+    sop.strategyListJson,
+    StringArraySchema,
+    []
+  );
+  const forbiddenList = safeJsonParseWithSchema(
+    sop.forbiddenListJson,
+    StringArraySchema,
+    []
+  );
 
   return {
     sopId: sop.sopId,
@@ -159,22 +171,28 @@ export async function getDefaultRealtimePanel(
       stage: stageId,
       stateSummary: stage.stageDesc || "第一段认知建立期",
       coreGoal: "建立信任，了解客户真实需求",
-      strategyList: stage.allowActions
-        ? JSON.parse(stage.allowActions)
-        : ["建立信任", "了解需求"],
-      forbiddenList: stage.forbidActions
-        ? JSON.parse(stage.forbidActions)
-        : ["过度推销", "承诺收益"],
+      strategyList: safeJsonParseWithSchema(stage.allowActions, StringArraySchema, [
+        "建立信任",
+        "了解需求",
+      ]),
+      forbiddenList: safeJsonParseWithSchema(stage.forbidActions, StringArraySchema, [
+        "过度推销",
+        "承诺收益",
+      ]),
     };
   }
 
   const sop = defaultSopMap.sop;
-  const strategyList = sop.strategyListJson
-    ? JSON.parse(sop.strategyListJson)
-    : [];
-  const forbiddenList = sop.forbiddenListJson
-    ? JSON.parse(sop.forbiddenListJson)
-    : [];
+  const strategyList = safeJsonParseWithSchema(
+    sop.strategyListJson,
+    StringArraySchema,
+    []
+  );
+  const forbiddenList = safeJsonParseWithSchema(
+    sop.forbiddenListJson,
+    StringArraySchema,
+    []
+  );
 
   return {
     stage: sop.sopStage,
