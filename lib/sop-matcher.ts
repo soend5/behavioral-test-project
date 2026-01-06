@@ -144,13 +144,12 @@ export async function getDefaultRealtimePanel(
     where: {
       stageId,
       isDefault: true,
+      sop: {
+        status: "active",
+      },
     },
     include: {
-      sop: {
-        where: {
-          status: "active",
-        },
-      },
+      sop: true,
     },
   });
 

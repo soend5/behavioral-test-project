@@ -6,7 +6,7 @@
  */
 
 import { getServerSession } from "next-auth";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { hashToken } from "./token";
 import { ErrorCode } from "./errors";
 
@@ -195,6 +195,15 @@ export async function requireCoachOwnsAttempt(
   return attempt;
 }
 
+type InviteWithRelations = Prisma.InviteGetPayload<{
+  include: {
+    customer: true;
+    coach: { select: { id: true; username: true } };
+  };
+}>;
+
+type InviteWithoutRelations = Prisma.InviteGetPayload<{}>;
+
 /**
  * 通过 token 获取 invite（含状态校验）
  * @param prisma PrismaClient 实例
@@ -208,9 +217,25 @@ export async function requireInviteByToken(
   token: string,
   options: {
     allowStatuses?: string[];
+    includeRelations: true;
+  }
+): Promise<InviteWithRelations>;
+export async function requireInviteByToken(
+  prisma: PrismaClient,
+  token: string,
+  options?: {
+    allowStatuses?: string[];
+    includeRelations?: false;
+  }
+): Promise<InviteWithoutRelations>;
+export async function requireInviteByToken(
+  prisma: PrismaClient,
+  token: string,
+  options: {
+    allowStatuses?: string[];
     includeRelations?: boolean;
   } = {}
-) {
+): Promise<InviteWithRelations | InviteWithoutRelations> {
   const { allowStatuses = ["active", "entered"], includeRelations = true } =
     options;
 
@@ -220,8 +245,10 @@ export async function requireInviteByToken(
 
   const tokenHash = hashToken(token);
 
-  const include: any = includeRelations
-    ? {
+  if (includeRelations) {
+    const invite = await prisma.invite.findFirst({
+      where: { tokenHash },
+      include: {
         customer: true,
         coach: {
           select: {
@@ -229,29 +256,45 @@ export async function requireInviteByToken(
             username: true,
           },
         },
-      }
-    : undefined;
+      },
+    });
 
-  const invite = await prisma.invite.findFirst({
-    where: { tokenHash },
-    include,
-  });
+    if (!invite) {
+      throw new Error(ErrorCode.INVITE_INVALID);
+    }
 
-  if (!invite) {
-    throw new Error(ErrorCode.INVITE_INVALID);
+    // 检查是否过期
+    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+    }
+
+    // 检查状态是否允许
+    if (!allowStatuses.includes(invite.status)) {
+      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+    }
+
+    return invite;
+  } else {
+    const invite = await prisma.invite.findFirst({
+      where: { tokenHash },
+    });
+
+    if (!invite) {
+      throw new Error(ErrorCode.INVITE_INVALID);
+    }
+
+    // 检查是否过期
+    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+    }
+
+    // 检查状态是否允许
+    if (!allowStatuses.includes(invite.status)) {
+      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+    }
+
+    return invite;
   }
-
-  // 检查是否过期
-  if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-    throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-  }
-
-  // 检查状态是否允许
-  if (!allowStatuses.includes(invite.status)) {
-    throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-  }
-
-  return invite;
 }
 
 /**
