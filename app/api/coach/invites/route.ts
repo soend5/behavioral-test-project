@@ -22,6 +22,7 @@ import { writeAudit } from "@/lib/audit";
 import { generateToken, hashToken } from "@/lib/token";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { Prisma } from "@prisma/client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,34 +49,27 @@ export async function POST(request: NextRequest) {
     // 验证 customer ownership
     await requireCoachOwnsCustomer(prisma, session.user.id, customerId);
 
-    // 检查是否有同客户同版本的 active invite
-    const existingInvite = await prisma.invite.findFirst({
+    // 校验 quiz 是否存在且为 active（status=inactive 禁止新 invite）
+    const quiz = await prisma.quiz.findUnique({
       where: {
-        customerId,
-        version,
-        status: "active",
+        quizVersion_version: {
+          quizVersion,
+          version,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
       },
     });
 
-    // 如果有，自动过期旧的
-    if (existingInvite) {
-      await prisma.invite.update({
-        where: { id: existingInvite.id },
-        data: { status: "expired" },
-      });
-
-      // 写入审计日志
-      await writeAudit(
-        prisma,
-        session.user.id,
-        "coach.expire_invite",
-        "invite",
-        existingInvite.id,
-        {
-          reason: "auto_expired_by_new_invite",
-          newInviteCustomerId: customerId,
-          newInviteVersion: version,
-        }
+    if (!quiz) {
+      return fail(ErrorCode.NOT_FOUND, "题库不存在");
+    }
+    if (quiz.status !== "active") {
+      return fail(
+        ErrorCode.VALIDATION_ERROR,
+        "题库已停用（inactive），禁止创建新邀请"
       );
     }
 
@@ -83,32 +77,90 @@ export async function POST(request: NextRequest) {
     const token = generateToken();
     const tokenHash = hashToken(token);
 
-    // 创建新邀请
-    const invite = await prisma.invite.create({
-      data: {
-        tokenHash,
-        status: "active",
-        customerId,
-        coachId: session.user.id,
-        version,
-        quizVersion,
-        expiresAt: parsedExpiresAt,
-      },
-    });
+    let invite: { id: string; status: string; customerId: string; version: string; quizVersion: string; expiresAt: Date | null; tokenHash: string };
 
-    // 写入审计日志
-    await writeAudit(
-      prisma,
-      session.user.id,
-      "coach.create_invite",
-      "invite",
-      invite.id,
-      {
-        customerId,
-        version,
-        quizVersion,
+    try {
+      invite = await prisma.$transaction(async (tx) => {
+        // 检查是否有同客户同版本的 active invite（并发下由 DB 约束兜底）
+        const existingInvite = await tx.invite.findFirst({
+          where: {
+            customerId,
+            version,
+            status: "active",
+          },
+          select: { id: true },
+        });
+
+        // 如果有，自动过期旧的
+        if (existingInvite) {
+          await tx.invite.update({
+            where: { id: existingInvite.id },
+            data: { status: "expired" },
+          });
+
+          await writeAudit(
+            tx,
+            session.user.id,
+            "coach.expire_invite",
+            "invite",
+            existingInvite.id,
+            {
+              reason: "auto_expired_by_new_invite",
+              newInviteCustomerId: customerId,
+              newInviteVersion: version,
+            }
+          );
+        }
+
+        // 创建新邀请
+        const created = await tx.invite.create({
+          data: {
+            tokenHash,
+            status: "active",
+            customerId,
+            coachId: session.user.id,
+            version,
+            quizVersion,
+            expiresAt: parsedExpiresAt,
+          },
+          select: {
+            id: true,
+            tokenHash: true,
+            status: true,
+            customerId: true,
+            version: true,
+            quizVersion: true,
+            expiresAt: true,
+          },
+        });
+
+        await writeAudit(
+          tx,
+          session.user.id,
+          "coach.create_invite",
+          "invite",
+          created.id,
+          {
+            customerId,
+            version,
+            quizVersion,
+          }
+        );
+
+        return created;
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        return fail(
+          ErrorCode.CONFLICT,
+          "该客户同版本已有 active 邀请（可能是并发创建），请刷新后重试"
+        );
       }
-    );
+      throw error;
+    }
 
     // 构建完整 URL
     const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
@@ -136,6 +188,9 @@ export async function POST(request: NextRequest) {
     }
     if (error.message === ErrorCode.CUSTOMER_NOT_FOUND) {
       return fail(error.message, "客户不存在");
+    }
+    if (error.message === ErrorCode.NOT_FOUND) {
+      return fail(error.message, "题库不存在");
     }
     console.error("Create invite error:", error);
     return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");

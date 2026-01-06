@@ -154,3 +154,74 @@ chmod +x scripts/smoke-test-authz.sh
 - [ ] 测试 3: 跨 invite 访问 attempt 返回 `FORBIDDEN`
 - [ ] 测试 4: Coach 访问 admin-only 接口返回 `FORBIDDEN`
 
+---
+
+### 5. Quiz status=inactive 禁止创建新 invite（P1）
+
+**测试目标**：验证 `POST /api/coach/invites` 会前置校验 quiz 必须为 `active`。
+
+**步骤**：
+1. 管理员将某个 quiz 的 `status` 置为 `inactive`
+2. 助教尝试为该 `quizVersion + version` 创建 invite
+
+**预期结果**：
+- HTTP 状态码：400
+- 错误码：`VALIDATION_ERROR`
+- 错误消息：包含“题库已停用（inactive）”
+
+**验收命令（示例）**：
+```bash
+# 1) admin 获取 quiz 列表，找到要测试的 quizId
+curl -X GET "http://localhost:3000/api/admin/quiz" \
+  -H "Cookie: next-auth.session-token=ADMIN_SESSION_TOKEN"
+
+# 2) admin 将 quiz 标记为 inactive
+curl -X PATCH "http://localhost:3000/api/admin/quiz/QUIZ_ID" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=ADMIN_SESSION_TOKEN" \
+  -d '{"status":"inactive"}'
+
+# 3) coach 创建 invite（应失败）
+curl -X POST "http://localhost:3000/api/coach/invites" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=COACH_SESSION_TOKEN" \
+  -d '{"customerId":"CUSTOMER_ID","version":"fast","quizVersion":"v1"}'
+
+# 4) 测试结束后，建议恢复为 active
+curl -X PATCH "http://localhost:3000/api/admin/quiz/QUIZ_ID" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=ADMIN_SESSION_TOKEN" \
+  -d '{"status":"active"}'
+```
+
+---
+
+### 6. 同客户同版本唯一 active invite（事务/DB 约束）（P1）
+
+**测试目标**：验证并发下不会产生“双 active”（DB 层兜底），且最终 **同客户同版本只有 1 条 active invite**。
+
+**步骤**：
+1. 准备一个 customer（CUSTOMER_ID）
+2. 并发触发 2 次 `POST /api/coach/invites`（同 customerId + version + quizVersion）
+3. 用 `GET /api/coach/invites?status=active&customer_id=...` 校验 active 数量
+
+**预期结果**：
+- 最终 active invite 数量：**1**
+- 并发请求可能出现的表现（均可接受）：
+  - 其中 1 个请求返回 `409 CONFLICT`（并发创建被 DB 约束拒绝）
+  - 或者 2 个都返回 200，但旧的被自动 expire，最终仍只有 1 个 active
+
+**验收命令（bash 示例）**：
+```bash
+PAYLOAD='{"customerId":"CUSTOMER_ID","version":"fast","quizVersion":"v1"}'
+
+printf '%s\n' 1 2 | xargs -P 2 -I{} curl -s -X POST "http://localhost:3000/api/coach/invites" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: next-auth.session-token=COACH_SESSION_TOKEN" \
+  -d "$PAYLOAD"
+
+curl -s "http://localhost:3000/api/coach/invites?status=active&customer_id=CUSTOMER_ID&page=1&limit=50" \
+  -H "Cookie: next-auth.session-token=COACH_SESSION_TOKEN"
+```
+
+

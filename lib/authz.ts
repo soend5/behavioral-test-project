@@ -9,6 +9,7 @@ import { getServerSession } from "next-auth";
 import { PrismaClient, Prisma } from "@prisma/client";
 import { hashToken } from "./token";
 import { ErrorCode } from "./errors";
+import { authOptions } from "./auth";
 
 type DbClient = PrismaClient | Prisma.TransactionClient;
 
@@ -24,7 +25,7 @@ type Session = {
  * 获取会话（可为 null）
  */
 export async function getSessionOrNull(): Promise<Session | null> {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return null;
   }
@@ -267,6 +268,17 @@ export async function requireInviteByToken(
 
     // 检查是否过期
     if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      // expiresAt 到期时，将状态落库为 expired（best-effort）
+      if (invite.status !== "expired" && invite.status !== "completed") {
+        try {
+          await prisma.invite.update({
+            where: { id: invite.id },
+            data: { status: "expired" },
+          });
+        } catch (e) {
+          console.error("Failed to persist invite expiry:", e);
+        }
+      }
       throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
     }
 
@@ -287,6 +299,17 @@ export async function requireInviteByToken(
 
     // 检查是否过期
     if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      // expiresAt 到期时，将状态落库为 expired（best-effort）
+      if (invite.status !== "expired" && invite.status !== "completed") {
+        try {
+          await prisma.invite.update({
+            where: { id: invite.id },
+            data: { status: "expired" },
+          });
+        } catch (e) {
+          console.error("Failed to persist invite expiry:", e);
+        }
+      }
       throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
     }
 

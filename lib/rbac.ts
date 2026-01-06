@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { prisma } from "./prisma";
 import { hashToken } from "./token";
+import { authOptions } from "./auth";
 
 /**
  * RBAC/Ownership 门禁工具
@@ -18,7 +19,7 @@ import { hashToken } from "./token";
  * 获取当前会话（必须登录）
  */
 export async function requireAuth() {
-  const session = await getServerSession();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     throw new Error("UNAUTHORIZED");
   }

@@ -20,10 +20,11 @@ import { writeAudit } from "@/lib/audit";
 import { matchSOP, getDefaultRealtimePanel } from "@/lib/sop-matcher";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
-import { safeJsonParseWithSchema } from "@/lib/json";
+import { safeJsonParse, safeJsonParseWithSchema } from "@/lib/json";
 import { z } from "zod";
 
 const StringArraySchema = z.array(z.string());
+const AnswersRecordSchema = z.record(z.string().min(1), z.string().min(1));
 
 export async function GET(
   request: NextRequest,
@@ -87,6 +88,110 @@ export async function GET(
       },
     });
 
+    // 构建 latestAttempt 详细信息（答案 + 结果摘要）
+    let latestAttemptView: any = null;
+    if (latestAttempt) {
+      const tags = latestAttempt.tagsJson
+        ? safeJsonParseWithSchema(latestAttempt.tagsJson, StringArraySchema, [])
+        : [];
+
+      const answersRecord = safeJsonParseWithSchema(
+        latestAttempt.answersJson,
+        AnswersRecordSchema,
+        {}
+      );
+
+      const resultSummary = latestAttempt.resultSummaryJson
+        ? safeJsonParse(latestAttempt.resultSummaryJson)
+        : null;
+
+      let answers: Array<{
+        questionId: string;
+        orderNo: number | null;
+        stem: string | null;
+        optionId: string;
+        optionText: string | null;
+      }> = [];
+
+      const answerKeys = Object.keys(answersRecord);
+      if (answerKeys.length > 0) {
+        const quiz = await prisma.quiz.findUnique({
+          where: {
+            quizVersion_version: {
+              quizVersion: latestAttempt.quizVersion,
+              version: latestAttempt.version,
+            },
+          },
+          include: {
+            questions: {
+              orderBy: { orderNo: "asc" },
+              include: {
+                options: {
+                  orderBy: { orderNo: "asc" },
+                },
+              },
+            },
+          },
+        });
+
+        const questionById = new Map<
+          string,
+          { orderNo: number; stem: string; optionTextById: Map<string, string> }
+        >();
+
+        if (quiz) {
+          for (const q of quiz.questions) {
+            questionById.set(q.id, {
+              orderNo: q.orderNo,
+              stem: q.stem,
+              optionTextById: new Map(q.options.map((o) => [o.id, o.text])),
+            });
+          }
+        }
+
+        // 按题目顺序输出（已回答的）
+        const ordered = quiz?.questions
+          .filter((q) => answersRecord[q.id])
+          .map((q) => {
+            const optionId = answersRecord[q.id];
+            const meta = questionById.get(q.id);
+            return {
+              questionId: q.id,
+              orderNo: q.orderNo,
+              stem: q.stem,
+              optionId,
+              optionText: meta?.optionTextById.get(optionId) ?? null,
+            };
+          });
+
+        answers = ordered ?? [];
+
+        // 兜底：answersRecord 中存在但题库中找不到的题目
+        for (const [questionId, optionId] of Object.entries(answersRecord)) {
+          if (questionById.has(questionId)) continue;
+          answers.push({
+            questionId,
+            orderNo: null,
+            stem: null,
+            optionId,
+            optionText: null,
+          });
+        }
+      }
+
+      latestAttemptView = {
+        id: latestAttempt.id,
+        version: latestAttempt.version,
+        quizVersion: latestAttempt.quizVersion,
+        submittedAt: latestAttempt.submittedAt,
+        tags,
+        stage: latestAttempt.stage,
+        answersRecord,
+        answers,
+        resultSummary,
+      };
+    }
+
     // 构建 realtime_panel
     let realtimePanel: any = null;
 
@@ -147,17 +252,7 @@ export async function GET(
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
       },
-      latestAttempt: latestAttempt
-        ? {
-            id: latestAttempt.id,
-            version: latestAttempt.version,
-            submittedAt: latestAttempt.submittedAt,
-            tags: latestAttempt.tagsJson
-              ? safeJsonParseWithSchema(latestAttempt.tagsJson, StringArraySchema, [])
-              : [],
-            stage: latestAttempt.stage,
-          }
-        : null,
+      latestAttempt: latestAttemptView,
       attemptTimeline: attempts.map((a) => ({
         id: a.id,
         version: a.version,
