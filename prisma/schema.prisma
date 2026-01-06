@@ -6,9 +6,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // 给线上运行（可用 pooler）
+  directUrl = env("DIRECT_URL")     // 给 migrate/seed（必须直连）
 }
+
 
 // 用户与权限
 model User {
