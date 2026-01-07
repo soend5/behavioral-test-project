@@ -316,6 +316,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-semibold mb-3">实时陪跑提示区</h2>
+                <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+                  提示：以下为沟通策略建议与行为结构画像参考，不构成投资顾问服务或任何买卖建议，不承诺收益。
+                </div>
                 {data.realtimePanel ? (
                   <div className="space-y-3 text-sm">
                     <div>

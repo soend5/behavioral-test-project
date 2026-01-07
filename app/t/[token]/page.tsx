@@ -60,6 +60,9 @@ export default function InviteLandingPage({ params }: { params: { token: string 
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-2">欢迎参加测评</h1>
         <p className="text-gray-600 mb-6">请确认邀请信息后开始测评。</p>
+        <div className="mb-6 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+          本测评用于生成交易行为结构画像与沟通建议，不构成投资顾问服务或任何买卖建议，不承诺收益。
+        </div>
 
         {loading ? <div>加载中...</div> : null}
         {error ? <p className="text-sm text-red-600 mb-4">{error}</p> : null}

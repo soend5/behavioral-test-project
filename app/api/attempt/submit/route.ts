@@ -52,11 +52,10 @@ export async function POST(request: NextRequest) {
 
     const txResult = await prisma.$transaction(async (tx) => {
       const invite = await requireInviteByToken(tx, token, {
-        allowStatuses: ["active", "entered"],
+        // 允许 completed/expired：用于 submit 的并发幂等（已完成的再次提交应返回既有结果）
+        allowStatuses: ["active", "entered", "completed", "expired"],
         includeRelations: false,
       });
-
-      assertInviteAllowsSubmit(invite);
 
       const attempt = await requireAttemptOwnership(tx, attemptId, invite.id);
       if (attempt.submittedAt !== null) {
@@ -67,6 +66,9 @@ export async function POST(request: NextRequest) {
           resultSummaryJson: attempt.resultSummaryJson,
         };
       }
+
+      // invite 已完成/已失效时：禁止“首次提交”，但允许“重复提交返回既有结果”（已在上面处理）
+      assertInviteAllowsSubmit(invite);
 
       const submittedAt = new Date();
       const locked = await tx.attempt.updateMany({

@@ -3,6 +3,7 @@
  * 幂等性：可重复运行，不会重复创建数据
  */
 
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedContentAssets } from "./seed-content";

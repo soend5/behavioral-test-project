@@ -55,6 +55,9 @@ export default function ResultPage({ params }: { params: { token: string } }) {
       <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-2">测评结果</h1>
         <p className="text-gray-600 mb-6">感谢您的参与。</p>
+        <div className="mb-6 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+          结果为交易行为结构画像与沟通建议参考，不构成投资顾问服务或任何买卖建议，不承诺收益。
+        </div>
 
         {loading ? <div>加载中...</div> : null}
         {error ? (

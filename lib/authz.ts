@@ -268,6 +268,7 @@ export async function requireInviteByToken(
 
     // 检查是否过期
     if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      const allowExpired = allowStatuses.includes("expired");
       // expiresAt 到期时，将状态落库为 expired（best-effort）
       if (invite.status !== "expired" && invite.status !== "completed") {
         try {
@@ -279,7 +280,16 @@ export async function requireInviteByToken(
           console.error("Failed to persist invite expiry:", e);
         }
       }
-      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+
+      // allowStatuses 包含 expired（例如 resolve/result）时允许只读访问
+      if (!allowExpired) {
+        throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+      }
+
+      // 运行时把状态视为 expired（便于上层逻辑/展示）
+      if (invite.status !== "completed") {
+        invite.status = "expired";
+      }
     }
 
     // 检查状态是否允许
@@ -299,6 +309,7 @@ export async function requireInviteByToken(
 
     // 检查是否过期
     if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      const allowExpired = allowStatuses.includes("expired");
       // expiresAt 到期时，将状态落库为 expired（best-effort）
       if (invite.status !== "expired" && invite.status !== "completed") {
         try {
@@ -310,7 +321,16 @@ export async function requireInviteByToken(
           console.error("Failed to persist invite expiry:", e);
         }
       }
-      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+
+      // allowStatuses 包含 expired（例如 resolve/result）时允许只读访问
+      if (!allowExpired) {
+        throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+      }
+
+      // 运行时把状态视为 expired（便于上层逻辑/展示）
+      if (invite.status !== "completed") {
+        invite.status = "expired";
+      }
     }
 
     // 检查状态是否允许

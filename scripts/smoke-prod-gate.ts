@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
@@ -251,4 +252,3 @@ main().catch((err) => {
   console.error("smoke:prod-gate crashed:", err);
   process.exit(1);
 });
-

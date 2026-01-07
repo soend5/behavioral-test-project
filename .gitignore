@@ -28,6 +28,16 @@ yarn-error.log*
 .env*
 !.env.example
 
+# local dev artifacts (do not commit)
+/.pgdata/
+/.pg.log
+/.dev.log
+/*.cookies
+/*.pid
+/*.tmp
+/*.temp
+/*.local
+
 # vercel
 .vercel
 
