@@ -92,7 +92,8 @@ async function main() {
     await prisma.$transaction(
       async (tx) => {
       // 防并发：transaction-level advisory lock（避免 Prisma pool 下 session lock 泄漏）
-      await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext('seed_prod_lock'))`;
+      // 注意：pg_advisory_xact_lock 返回 void，必须用 $executeRaw 执行，避免 Prisma 试图反序列化 void 列
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext('seed_prod_lock'))`;
 
       // 1) 创建 admin 账号（幂等）
       const adminUsername = process.env.ADMIN_USERNAME || "admin";
