@@ -16,9 +16,14 @@
 
 ```bash
 DATABASE_URL="postgresql://user:password@host:5432/database?schema=public"
+DIRECT_URL="postgresql://user:password@host:5432/database?schema=public"
 NEXTAUTH_SECRET="your-secret-key-here"
 NEXTAUTH_URL="http://localhost:3000"
 ```
+
+说明：
+- `DATABASE_URL`：线上可用 Supabase pooler（pgbouncer）
+- `DIRECT_URL`：给 `migrate/seed` 使用，必须直连
 
 ## 安装依赖
 
@@ -37,6 +42,9 @@ npm run db:migrate
 
 # 填充种子数据
 npm run db:seed
+
+# 校验内容资产（不连 DB）
+npm run content:validate
 ```
 
 ## 启动开发服务器
@@ -57,10 +65,16 @@ app/
   └── admin/                # 总后台
 prisma/
   ├── schema.prisma         # 数据模型
-  └── seed.ts               # 种子数据
+  ├── seed.ts               # 本地/开发种子（幂等）
+  ├── seed.prod.ts          # 生产种子（幂等，禁止默认口令）
+  └── seed-content.ts       # 内容资产导入（data/seed/*.json）
 lib/
   ├── prisma.ts             # Prisma Client
   └── auth.ts               # NextAuth 配置
+data/
+  └── seed/                 # 内容资产 JSON（quiz / archetypes / handbook / methodology）
+scripts/
+  └── validate-seed-content.ts # 内容资产自检脚本
 ```
 
 ## 生产灰度部署最小步骤
@@ -77,6 +91,7 @@ lib/
 
 ```bash
 DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres"
 NEXTAUTH_SECRET="[生成32字符随机字符串]"
 NEXTAUTH_URL="https://your-domain.com"
 ```
@@ -92,20 +107,22 @@ openssl rand -base64 32
 
 ### 4. 运行数据库迁移
 
-在部署平台的 Build Command 中添加：
+生产环境 migrate/seed 建议与 Vercel Build 解耦，使用 GitHub Actions 数据库发布流水线（`.github/workflows/db-deploy.yml`）。
+
+Vercel Build Command：
 ```bash
-npm run db:generate && npm run migrate:deploy && npm run build
+npm run db:generate && npm run build
 ```
 
 或手动运行：
 ```bash
-npm run migrate:deploy
+npm run db:migrate:deploy
 ```
 
 ### 5. 运行种子数据（仅首次）
 
 ```bash
-npm run seed:prod
+ALLOW_PROD_SEED=true DIRECT_URL="postgresql://..." SEED_ADMIN_PASSWORD="..." npm run seed:prod
 ```
 
 ### 6. 配置域名
@@ -137,4 +154,3 @@ npm run seed:prod
 - [x] Step 8: 实现 SOP 配置 CRUD + SOP 匹配引擎
 - [x] Step 9: audit_log 最小实现
 - [x] Step 10: Smoke test + README 完整
-

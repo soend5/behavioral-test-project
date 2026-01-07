@@ -80,19 +80,30 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireAdmin();
     const body = await request.json();
-    const { questionId, orderNo, text, scorePayloadJson } = body;
+    const { questionId, orderNo, text, scorePayloadJson, stableId } = body;
 
     if (!questionId || orderNo === undefined || !text) {
       return fail(ErrorCode.INVALID_INPUT, "缺少必要参数：questionId, orderNo, text");
     }
 
+    const parsedOrderNo = parseInt(orderNo);
+    if (!Number.isFinite(parsedOrderNo) || parsedOrderNo <= 0) {
+      return fail(ErrorCode.VALIDATION_ERROR, "orderNo 必须是正整数");
+    }
+
     // 验证题目存在
     const question = await prisma.question.findUnique({
       where: { id: questionId },
+      include: { quiz: { select: { quizVersion: true } } },
     });
 
     if (!question) {
       return fail(ErrorCode.NOT_FOUND, "题目不存在");
+    }
+
+    // v1 题库只读（防止破坏式修改已上线版本）
+    if (question.quiz?.quizVersion === "v1") {
+      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
     }
 
     // 验证 scorePayloadJson 格式（如果提供）
@@ -112,10 +123,13 @@ export async function POST(request: NextRequest) {
     }
 
     // 创建选项
+    const resolvedStableId =
+      typeof stableId === "string" && stableId.trim() ? stableId.trim() : `order_${parsedOrderNo}`;
     const option = await prisma.option.create({
       data: {
         questionId,
-        orderNo: parseInt(orderNo),
+        stableId: resolvedStableId,
+        orderNo: parsedOrderNo,
         text,
         scorePayloadJson: scorePayload ? JSON.stringify(scorePayload) : null,
       },
@@ -139,6 +153,7 @@ export async function POST(request: NextRequest) {
       option: {
         id: option.id,
         questionId: option.questionId,
+        stableId: option.stableId,
         orderNo: option.orderNo,
         text: option.text,
         scorePayloadJson: scorePayload,

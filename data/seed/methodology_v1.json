@@ -1,0 +1,36 @@
+{
+  "version": "v1",
+  "status": "active",
+  "sections": [
+    {
+      "slug": "v1_1_overview",
+      "title_cn": "总览：SOP 的定位",
+      "content_markdown": "# SOP 的定位\\n\\nSOP 不是话术模板，也不是“预测工具”。它的作用是：\\n\\n- **把下一步动作收敛到可执行**：让助教在当下只做最关键的 1-3 件事\\n- **把不做什么说清楚**：用 forbidden_list 提前止损坏动作\\n- **把复盘成本压低**：同一套输入（stage + tags）对应同一套输出，方便对比\\n\\n> 评价标准：**被采用率**（客户愿不愿意做、能不能做），优先级高于“命中率”。\\n"
+    },
+    {
+      "slug": "v1_2_inputs",
+      "title_cn": "输入：stage 与 tags 的使用方式",
+      "content_markdown": "# 输入使用方式\\n\\n## 1) 先用 stage 定位当下重点\\n- pre：更容易卡在启动/执行，先稳住规则与边界\\n- mid：多维拉扯明显，先降噪，再做一个小实验\\n- post：一致性更强，适合做稳定化与扩张\\n\\n## 2) tags 只做“收敛分类”，不做细碎描述\\n建议只保留这些大类：\\n- image:*\\n- risk:high|medium|low\\n- emotion:high|medium|low\\n- consistency:high|medium|low\\n- rule:high|medium|low\\n- opportunity:high|medium|low\\n- experience:high|medium|low\\n\\n**原则**：宁可少，也不要杂。标签越多，越难形成稳定可复盘的 SOP。\\n"
+    },
+    {
+      "slug": "v1_3_three_moves",
+      "title_cn": "三板斧：删 / 收 / 改",
+      "content_markdown": "# SOP 精修三板斧\\n\\n## 1) 删（Delete）\\n删掉不会改变下一步动作的内容：\\n- 解释性长段落\\n- 重复建议\\n- 需要大量背景才能成立的判断\\n\\n## 2) 收（Shrink）\\n把输入与输出都收敛：\\n- required_tags 不超过 3 个\\n- excluded_tags 用来挡“高风险误用”，不要堆满\\n- strategy_list 最多 3 条，并且每条都能在 24 小时内开始执行\\n\\n## 3) 改（Edit）\\n把建议改成**动作句**：\\n- 从“你要更自律”改成“今天只做最小动作：X”\\n- 从“你别冲动”改成“任何大动作前先等 10 分钟再决定”\\n\\n> 目标：让助教更容易照做，让客户更不容易产生防御。\\n"
+    },
+    {
+      "slug": "v1_4_forbidden_list",
+      "title_cn": "forbidden_list：先止损坏动作",
+      "content_markdown": "# forbidden_list 的价值\\n\\nforbidden_list 的优先级通常高于 strategy_list。原因是：\\n- 客户在压力下更容易做“坏动作”\\n- 坏动作一旦发生，后面的建议很难落地\\n\\n## 写法建议\\n- 每条是可观察的行为（不要写评价词）\\n- 每条都要能被助教提醒与复盘\\n\\n示例：\\n- “在没有退出边界时加大动作”\\n- “连续两次亏损后立刻加快节奏试图扳回”\\n- “当下状态不好仍强行做决定”\\n"
+    },
+    {
+      "slug": "v1_5_rule_design",
+      "title_cn": "规则设计：让 SOP 更容易命中且不滥用",
+      "content_markdown": "# 规则设计\\n\\n## required_tags 的原则\\n- 只保留能改变建议的标签\\n- 标签要能稳定产出（否则命中忽高忽低）\\n\\n## excluded_tags 的原则\\n- 用来阻止明显误用\\n- 宁可少写，但要“真的有必要”\\n\\n## 反例（常见坏味道）\\n- required_tags 堆到 6-8 个：几乎不会命中\\n- excluded_tags 写成“所有不喜欢的情况”：导致 SOP 永远出不来\\n- 一条 SOP 覆盖过多场景：建议会变得很空\\n"
+    },
+    {
+      "slug": "v1_6_quality_bar",
+      "title_cn": "质量门槛：用“被采用率”驱动迭代",
+      "content_markdown": "# 质量门槛\\n\\n建议用以下三条做 SOP 的最低标准：\\n1) **可启动**：客户今天就能开始做\\n2) **可复盘**：一周后能说清楚是否执行、执行后有什么变化\\n3) **可收敛**：建议不会引导客户做更多不确定动作\\n\\n## 记录与迭代\\n- 记录：命中该 SOP 的 stage + tags + 助教标签 + 客户反馈\\n- 迭代：只改一处（删/收/改其一），观察被采用率是否上升\\n\\n> 目标不是“每次都说对”，而是“每次都更容易被做出来”。\\n"
+    }
+  ]
+}

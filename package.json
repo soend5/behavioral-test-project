@@ -13,7 +13,10 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "migrate:deploy": "prisma migrate deploy",
-    "seed:prod": "tsx prisma/seed.prod.ts"
+    "db:migrate:deploy": "prisma migrate deploy",
+    "seed:prod": "tsx prisma/seed.prod.ts",
+    "content:validate": "tsx scripts/validate-seed-content.ts",
+    "smoke:prod-gate": "tsx scripts/smoke-prod-gate.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

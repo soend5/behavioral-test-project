@@ -78,10 +78,15 @@ export async function POST(request: NextRequest) {
   try {
     const session = await requireAdmin();
     const body = await request.json();
-    const { quizId, orderNo, stem, status = "active" } = body;
+    const { quizId, orderNo, stem, status = "active", stableId } = body;
 
     if (!quizId || orderNo === undefined || !stem) {
       return fail(ErrorCode.INVALID_INPUT, "缺少必要参数：quizId, orderNo, stem");
+    }
+
+    const parsedOrderNo = parseInt(orderNo);
+    if (!Number.isFinite(parsedOrderNo) || parsedOrderNo <= 0) {
+      return fail(ErrorCode.VALIDATION_ERROR, "orderNo 必须是正整数");
     }
 
     // 验证 quiz 存在
@@ -93,11 +98,19 @@ export async function POST(request: NextRequest) {
       return fail(ErrorCode.NOT_FOUND, "题库不存在");
     }
 
+    // v1 题库只读（防止破坏式修改已上线版本）
+    if (quiz.quizVersion === "v1") {
+      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
+    }
+
     // 创建题目
+    const resolvedStableId =
+      typeof stableId === "string" && stableId.trim() ? stableId.trim() : `order_${parsedOrderNo}`;
     const question = await prisma.question.create({
       data: {
         quizId,
-        orderNo: parseInt(orderNo),
+        stableId: resolvedStableId,
+        orderNo: parsedOrderNo,
         stem,
         status,
       },
@@ -121,6 +134,7 @@ export async function POST(request: NextRequest) {
       question: {
         id: question.id,
         quizId: question.quizId,
+        stableId: question.stableId,
         orderNo: question.orderNo,
         stem: question.stem,
         status: question.status,

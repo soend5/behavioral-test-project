@@ -215,6 +215,7 @@ model Quiz {
 model Question {
   id        String   @id @default(cuid())
   quizId    String   @map("quiz_id")
+  stableId  String   @map("stable_id")
   orderNo   Int      @map("order_no")
   stem      String
   status    String   @default("active")
@@ -224,6 +225,7 @@ model Question {
   quiz      Quiz     @relation(fields: [quizId], references: [id])
   options   Option[]
 
+  @@unique([quizId, stableId])
   @@unique([quizId, orderNo])
   @@index([quizId, status])
   @@map("questions")
@@ -232,6 +234,7 @@ model Question {
 model Option {
   id              String   @id @default(cuid())
   questionId      String   @map("question_id")
+  stableId        String   @map("stable_id")
   orderNo         Int      @map("order_no")
   text            String
   scorePayloadJson String?  @map("score_payload_json") // JSON object
@@ -240,6 +243,7 @@ model Option {
   // 关系
   question        Question @relation(fields: [questionId], references: [id])
 
+  @@unique([questionId, stableId])
   @@unique([questionId, orderNo])
   @@map("options")
 }
@@ -260,5 +264,101 @@ model AuditLog {
   @@index([actorUserId, createdAt])
   @@index([action, createdAt])
   @@map("audit_log")
+}
+
+// --- Content assets (v1) ---
+model Archetype {
+  id              String   @id @default(cuid())
+  key             String
+  titleCn         String   @map("title_cn")
+  oneLinerCn      String   @map("one_liner_cn")
+  traitsCn        Json     @map("traits_cn")
+  risksCn         Json     @map("risks_cn")
+  coachGuidanceCn Json     @map("coach_guidance_cn")
+  version         String
+  status          String   @default("active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@unique([key, version])
+  @@index([status, version])
+  @@map("archetypes")
+}
+
+model TrainingHandbook {
+  id        String   @id @default(cuid())
+  version   String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  days TrainingDay[]
+
+  @@map("training_handbook")
+}
+
+model TrainingDay {
+  id          String   @id @default(cuid())
+  handbookId  String   @map("handbook_id")
+  dayNo       Int      @map("day_no")
+  titleCn     String   @map("title_cn")
+  goalCn      String   @map("goal_cn")
+  doListCn    Json     @map("do_list_cn")
+  dontListCn  Json     @map("dont_list_cn")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  handbook TrainingHandbook @relation(fields: [handbookId], references: [id], onDelete: Cascade)
+  sections TrainingSection[]
+
+  @@unique([handbookId, dayNo])
+  @@index([handbookId, dayNo])
+  @@map("training_day")
+}
+
+model TrainingSection {
+  id        String   @id @default(cuid())
+  dayId     String   @map("day_id")
+  orderNo   Int      @map("order_no")
+  titleCn   String   @map("title_cn")
+  bulletsCn Json     @map("bullets_cn")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  day TrainingDay @relation(fields: [dayId], references: [id], onDelete: Cascade)
+
+  @@unique([dayId, orderNo])
+  @@index([dayId])
+  @@map("training_section")
+}
+
+model MethodologyDoc {
+  id        String   @id @default(cuid())
+  version   String   @unique
+  status    String   @default("active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sections MethodologySection[]
+
+  @@map("methodology_doc")
+}
+
+model MethodologySection {
+  id              String   @id @default(cuid())
+  docId           String   @map("doc_id")
+  slug            String
+  titleCn         String   @map("title_cn")
+  contentMarkdown String   @map("content_markdown")
+  orderNo         Int      @map("order_no")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  doc MethodologyDoc @relation(fields: [docId], references: [id], onDelete: Cascade)
+
+  @@unique([docId, slug])
+  @@unique([docId, orderNo])
+  @@index([docId])
+  @@map("methodology_section")
 }
 

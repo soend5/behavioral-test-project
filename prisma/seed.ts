@@ -5,6 +5,7 @@
 
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { seedContentAssets } from "./seed-content";
 
 const prisma = new PrismaClient();
 
@@ -150,6 +151,9 @@ async function main() {
       console.log(`ℹ️  coaching_stage 已存在: ${stage.stageId}`);
     }
   }
+
+  // 5. 填充内容资产（题库/画像/内训/方法论）——幂等导入
+  await seedContentAssets(prisma);
 
   console.log("✅ 种子数据填充完成");
 }

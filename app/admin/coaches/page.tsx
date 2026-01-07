@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { signOut } from "next-auth/react";
+import { AdminNav } from "../_components/AdminNav";
 
 type CoachStatus = "active" | "inactive";
 type Coach = {
@@ -114,16 +114,11 @@ export default function AdminCoachesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav />
+      <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">助教账号管理</h1>
-          <button
-            onClick={() => signOut({ callbackUrl: "/admin/login" })}
-            className="px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm"
-          >
-            退出登录
-          </button>
         </div>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">

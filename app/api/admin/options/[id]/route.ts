@@ -29,10 +29,16 @@ export async function PATCH(
     // 获取现有选项
     const option = await prisma.option.findUnique({
       where: { id: optionId },
+      include: { question: { select: { quiz: { select: { quizVersion: true } } } } },
     });
 
     if (!option) {
       return fail(ErrorCode.NOT_FOUND, "选项不存在");
+    }
+
+    // v1 题库只读（防止破坏式修改已上线版本）
+    if (option.question?.quiz?.quizVersion === "v1") {
+      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
     }
 
     // 验证 scorePayloadJson 格式（如果提供）
@@ -59,7 +65,12 @@ export async function PATCH(
     const updatedOption = await prisma.option.update({
       where: { id: optionId },
       data: {
-        orderNo: orderNo !== undefined ? parseInt(orderNo) : undefined,
+        orderNo:
+          orderNo !== undefined
+            ? Number.isFinite(parseInt(orderNo))
+              ? parseInt(orderNo)
+              : undefined
+            : undefined,
         text,
         scorePayloadJson: scorePayloadJson !== undefined
           ? (scorePayload ? JSON.stringify(scorePayload) : null)

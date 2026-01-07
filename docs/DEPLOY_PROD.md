@@ -2,6 +2,10 @@
 
 本文档说明如何将项目部署到生产环境（以 Vercel 为例，但适用于任何支持 Next.js 的平台）。
 
+> 更新（2026-01-07）：数据库迁移/seed 已与 Vercel Build 解耦，改由 GitHub Actions 的 DB Deploy 流水线执行（带 production environment 审批与并发保护）。
+> - 详见：`docs/260107.md`、`docs/GITHUB_ENV_PRODUCTION.md`
+> - Vercel 只负责应用发布，不在 Vercel Build 阶段执行 migrate/seed。
+
 ---
 
 ## 一、Supabase Production Project 准备
@@ -41,6 +45,7 @@ postgresql://postgres:[YOUR-PASSWORD]@db.your-project.supabase.co:5432/postgres
 ```bash
 # Database（Supabase Production）
 DATABASE_URL="postgresql://postgres:[PASSWORD]@[HOST]:6543/postgres?pgbouncer=true&connection_limit=1"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres"
 
 # NextAuth（生产环境）
 NEXTAUTH_SECRET="[生成一个强随机字符串，至少32字符]"
@@ -61,18 +66,18 @@ openssl rand -base64 32
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-### 生产环境种子数据变量（首次运行必需）
+### 生产环境种子数据变量（GitHub Actions / 手工解锁）
 
-首次运行 `npm run seed:prod` 创建初始账号时必须设置：
+生产 seed 由 GitHub Actions 执行（推荐），需要配置：
 
 ```bash
-ADMIN_USERNAME="admin"
-ADMIN_PASSWORD="[强密码]"
-COACH_USERNAME="coach1"
-COACH_PASSWORD="[强密码]"
+SEED_ADMIN_PASSWORD="[强密码，>=12]"
+DIRECT_URL="postgresql://postgres:[PASSWORD]@[HOST]:5432/postgres"
+# 可选：如需在 seed:prod 同时创建默认 coach 账号
+SEED_COACH_PASSWORD="[强密码，>=12]"
 ```
 
-**⚠️ 重要**：生产环境必须使用强密码，不要使用默认值！
+**重要**：`seed:prod` 仅允许在 GitHub Actions（`GITHUB_ACTIONS=true`）或显式 `ALLOW_PROD_SEED=true` 时运行；且必须提供 `SEED_ADMIN_PASSWORD`（强密码）。
 
 ---
 
@@ -90,18 +95,18 @@ npm run db:generate
 
 ### 2. 部署迁移（生产环境）
 
-在部署平台（如 Vercel）的构建命令中添加：
+生产环境 migrate 由 GitHub Actions 的 DB Deploy 流水线执行（不在 Vercel Build 阶段执行）：
 
 ```bash
-# Vercel Build Command
-npm run db:generate && npm run migrate:deploy && npm run build
+# Vercel Build Command（只 build，不执行 migrate/seed）
+npm run db:generate && npm run build
 ```
 
 或者使用 Vercel 的 **Post-Deploy Hook** 或 **Build Command**：
 
 ```json
 {
-  "buildCommand": "npm run db:generate && npm run migrate:deploy && npm run build"
+  "buildCommand": "npm run db:generate && npm run build"
 }
 ```
 
@@ -112,9 +117,11 @@ npm run db:generate && npm run migrate:deploy && npm run build
 ```bash
 # 设置生产环境变量
 export DATABASE_URL="postgresql://..."
+export DIRECT_URL="postgresql://..."
+export DIRECT_URL="postgresql://..."
 
 # 运行迁移
-npm run migrate:deploy
+npm run db:migrate:deploy
 ```
 
 ---
@@ -128,10 +135,12 @@ npm run migrate:deploy
 ```bash
 # 设置环境变量
 export DATABASE_URL="postgresql://..."
-export ADMIN_USERNAME="admin"
-export ADMIN_PASSWORD="[强密码]"
-export COACH_USERNAME="coach1"
-export COACH_PASSWORD="[强密码]"
+export DIRECT_URL="postgresql://..."
+export SEED_ADMIN_PASSWORD="[强密码，>=12]"
+# 可选：如需在 seed:prod 同时创建默认 coach 账号
+export SEED_COACH_PASSWORD="[强密码，>=12]"
+# 仅本地手工：解锁开关（CI/GitHub Actions 不需要）
+export ALLOW_PROD_SEED=true
 
 # 运行生产种子数据
 npm run seed:prod

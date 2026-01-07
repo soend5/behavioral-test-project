@@ -28,17 +28,28 @@ export async function PATCH(
     // 获取现有题目
     const question = await prisma.question.findUnique({
       where: { id: questionId },
+      include: { quiz: { select: { quizVersion: true } } },
     });
 
     if (!question) {
       return fail(ErrorCode.NOT_FOUND, "题目不存在");
     }
 
+    // v1 题库只读（防止破坏式修改已上线版本）
+    if (question.quiz?.quizVersion === "v1") {
+      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
+    }
+
     // 更新题目
     const updatedQuestion = await prisma.question.update({
       where: { id: questionId },
       data: {
-        orderNo: orderNo !== undefined ? parseInt(orderNo) : undefined,
+        orderNo:
+          orderNo !== undefined
+            ? Number.isFinite(parseInt(orderNo))
+              ? parseInt(orderNo)
+              : undefined
+            : undefined,
         stem,
         status,
       },

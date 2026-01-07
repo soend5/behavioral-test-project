@@ -3,6 +3,7 @@ name: DB Deploy (migrate + seed)
 on:
   push:
     branches: [ "main" ]
+  workflow_dispatch: {}
 
 concurrency:
   group: db-deploy-main
@@ -12,6 +13,8 @@ jobs:
   db:
     runs-on: ubuntu-latest
     environment: production
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -23,21 +26,24 @@ jobs:
 
       - run: npm ci
 
-      # 可选但强烈建议：先校验内容资产（避免把坏数据seed进生产）
-      - name: Validate content
+      - name: Validate content (data/seed/*.json)
         run: npm run content:validate
 
-      # 生产迁移（Prisma推荐的生产方式）
       - name: Prisma migrate deploy
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL:   ${{ secrets.DIRECT_URL }}
-        run: npx prisma migrate deploy
+        run: npm run db:migrate:deploy
 
-      # 生产seed（必须幂等 + 强密码gate）
-      - name: Seed prod (idempotent)
+      - name: Seed prod (idempotent + gates + advisory lock)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           DIRECT_URL:   ${{ secrets.DIRECT_URL }}
           SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
         run: npm run seed:prod
+
+      - name: Smoke gate (read-only)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL:   ${{ secrets.DIRECT_URL }}
+        run: npm run smoke:prod-gate

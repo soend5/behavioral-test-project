@@ -1,0 +1,1303 @@
+{
+  "slug": "pro_v1",
+  "version": "v1",
+  "title_cn": "专业测评",
+  "dimensions": [
+    {
+      "key": "rule_dependence",
+      "title_cn": "规则依赖度",
+      "questions": [
+        {
+          "id": "pro_A01",
+          "prompt_cn": "我准备执行一次动作，事前有一套规则/清单。临到执行时，盘面有些不符合预期但也没完全否定。我的选择是：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "按清单逐项核对，缺一项就不做，宁可错过。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high", "risk:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "先把动作缩小，等条件更贴近再说。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "rule:medium", "opportunity:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "先用小仓位试一下，边走边看，不等条件完全齐。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 1,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "rule:low", "risk:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "当下感觉机会很强，就先做了，规则后面再补。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "rule:low", "consistency:low", "emotion:medium", "opportunity:medium"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_A02",
+          "prompt_cn": "我发现自己的规则越来越复杂，执行成本变高。面对这种情况我通常会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "把规则拆成可执行的几个固定步骤，宁可少做也要一致执行。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "保留对我最有效的几条，其他的看当下情景灵活处理。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "rule:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "规则先放一边，先抓现在的节奏，后面再把规则补回来。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "rule:low", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "规则复杂我会更谨慎，宁愿减少动作直到我重新梳理清楚。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "rule:medium", "opportunity:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_A03",
+          "prompt_cn": "当我连续几次按规则执行却结果一般（不赚不亏/小亏），我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "继续按规则跑完整个周期，再决定是否调整。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high", "emotion:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "结果一般会让我没劲，容易在执行上打折扣或想换点刺激的做法。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low", "rule:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "回忆以前类似阶段我怎么处理过，通常会微调规则里我最在意的一项。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "rule:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "我会去找新的窗口，觉得规则需要更跟得上变化。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "rule:low", "consistency:low"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "emotion_involvement",
+      "title_cn": "情绪介入度",
+      "questions": [
+        {
+          "id": "pro_B01",
+          "prompt_cn": "当我遇到连续两次不顺（比如两笔都亏或都错过），我下一步更可能：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "情绪会上来，想尽快做点什么把局面扭回来。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "先暂停一下，回到规则和流程里，按固定节奏继续。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "emotion:low", "rule:high", "consistency:high"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "缩小动作甚至停下来，等自己恢复平稳再继续。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "emotion:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "会更快更频繁地调整，直到看到一个“顺”的反馈。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "emotion:high", "consistency:low", "opportunity:medium"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_B02",
+          "prompt_cn": "我在持有/推进过程中，反馈波动很大。我的注意力更容易被什么拉走？",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "自己的情绪起伏（紧张/兴奋/懊恼）会占很大比重。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "去找以前类似波动时的经验对照，看看这次像不像那几次。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "emotion:low", "consistency:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "关注是否触发了关键条件（边界/信号），其他噪音先放一边。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:rule_executor", "rule:high", "emotion:low", "consistency:high"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "关注有没有新的窗口可以利用，波动本身就是机会提示。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "emotion:medium", "consistency:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_B03",
+          "prompt_cn": "当我在一个决定上犹豫很久，最后临门一脚时，我更像：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "越临近越想再确认一次，拖到很晚才动。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "emotion:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "按预设的触发条件到点就做，避免在最后一刻纠结。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high", "emotion:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "情绪到一个点想结束这种拉扯，于是突然做决定。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "等一个更划算的窗口，窗口来了就做。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "emotion:medium", "consistency:medium"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "experience_reliance",
+      "title_cn": "经验依赖度",
+      "questions": [
+        {
+          "id": "pro_C01",
+          "prompt_cn": "当我看到一个场景和过去某段经历很像，我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "优先按过去那套处理方式走，熟悉感让我更敢下手。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "consistency:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "会用规则重新判定，不让“像不像”左右结果。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:rule_executor", "rule:high", "experience:low", "consistency:high"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "把它当成线索，但更关注这次有什么新变量，必要时快速调整。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 1,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "experience:medium", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "越像过去踩过坑的阶段，我越会先远离，等更确定再说。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 1,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "experience:medium", "opportunity:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_C02",
+          "prompt_cn": "当我复盘时发现：自己做对的部分其实“运气占比不小”，我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "把那次流程写下来，尽量把可复制的部分留下来。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "rule:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "把结果先放一边，只改过程，不因为一次结果就加戏。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high", "emotion:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "既然运气也重要，我更愿意多尝试不同机会，增加碰到好窗口的概率。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "experience:low", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "那种“赢了但不踏实”的感觉会影响我，接下来可能更保守或更激进。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "risk:medium", "consistency:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_C03",
+          "prompt_cn": "当我遇到一个从没遇过的新情况，过去经验不太能用。我更可能：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "先用通用规则（边界、节奏、复盘）兜底，避免乱动。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:rule_executor", "rule:high", "risk:medium", "consistency:high"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "先小步试错，边做边学，快速积累新经验。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 1,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "experience:medium", "risk:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "先观察一段时间，等更多信息再动。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "opportunity:low", "consistency:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "去找“相近”的经验来类比，哪怕不完全一样也先有个抓手。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "rule:medium", "consistency:medium"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "opportunity_sensitivity",
+      "title_cn": "机会敏感度",
+      "questions": [
+        {
+          "id": "pro_D01",
+          "prompt_cn": "我正在跟进一个计划，突然出现一个更“热”的机会（波动更大、讨论更多）。我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "把注意力切过去，先抓更有把握的窗口，原计划回头再说。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "先按规则评估是否值得切换，满足条件才动，否则继续原计划。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "opportunity:low", "consistency:high"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "很难忍住，会先冲进去再调整，怕错过。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "opportunity:high", "consistency:low", "emotion:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "越热越警惕，先等热度过去，看剩下的才是真机会。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "opportunity:low", "consistency:medium"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_D02",
+          "prompt_cn": "当我看到一个机会“看起来不错”，但我暂时说不清为什么。我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "如果它像我熟悉的模式，我会愿意先做一点。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "opportunity:medium", "risk:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "先小步试一下，拿到反馈再决定是否加码。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "risk:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "说不清就不做，先把理由写清楚到能复盘的程度。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "opportunity:low", "consistency:high"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "看当下状态：状态好就做，状态差就算了。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "opportunity:medium", "consistency:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_D03",
+          "prompt_cn": "当一个机会出现后很快消失（比如几分钟就走完一段），我更可能：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "下一次看到类似的就更快出手，宁可先进去。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "opportunity:high", "consistency:low", "emotion:medium"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "告诉自己这类机会本来就难抓，宁愿不追。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "opportunity:low", "consistency:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "把它记录下来，看是否能纳入规则，不能纳入就不追。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:rule_executor", "rule:high", "opportunity:medium", "consistency:high"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "会更愿意增加观察频率，尝试捕捉下一次窗口。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "consistency:medium"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "risk_defense",
+      "title_cn": "风险防御度",
+      "questions": [
+        {
+          "id": "pro_E01",
+          "prompt_cn": "我在做一个动作前，通常会先想清楚的“退出边界”是：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "提前写好止损/退出条件，触发就执行，不临场讨论。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "risk:high", "rule:high", "consistency:high"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "把整体动作压小，给自己留出足够撤退空间。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "consistency:medium", "opportunity:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "退出边界会留得松一点，避免被洗出去，主要看窗口是否还在。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "risk:low", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "很多时候边做边设，先进去再说，边界会随着感觉调整。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "risk:low", "consistency:low", "emotion:medium"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_E02",
+          "prompt_cn": "当我的持仓/方案出现明显回撤，我更常见的处理是：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "先减仓/降级动作，优先把回撤控制住。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "consistency:medium", "opportunity:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "按预设的分段规则处理：到哪一档做哪一档动作。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "risk:high", "rule:high", "consistency:high"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "回撤会让我坐不住，可能提前出也可能反过来加，取决于当时状态。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "risk:medium", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "回想以前类似回撤最终怎么走，先按经验做一个中性的处理。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "risk:medium", "consistency:medium"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_E03",
+          "prompt_cn": "在我没有把握的时候，我更倾向于用什么方式“保护自己”？",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "把动作缩小到“就算错了也能接受”的程度。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 1
+                },
+                "tags": ["image:defensive_observer", "risk:high", "consistency:medium", "opportunity:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "把不确定性写成条件：缺哪个条件就不做。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "risk:medium", "consistency:high"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "用多次小试探换反馈，错了就撤，主要怕错过窗口。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 1,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "risk:medium", "consistency:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "很多时候靠直觉判断，觉得不对就立刻改方向。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "risk:low", "consistency:low", "emotion:medium"]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "action_consistency",
+      "title_cn": "行动一致性",
+      "questions": [
+        {
+          "id": "pro_F01",
+          "prompt_cn": "我给自己设了一个执行计划（比如按固定节奏做观察/调整）。实际执行中，我更像：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "基本能按节奏执行，必要调整也会写下来。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 1,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "consistency:high", "rule:high"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "遇到机会就会插队，计划会跟着机会调整。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "consistency:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "状态好的时候执行得很好，状态差就容易中断。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "宁愿少做也保持一致，计划会更保守但更稳。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 2
+                },
+                "tags": ["image:defensive_observer", "consistency:high", "risk:high", "opportunity:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_F02",
+          "prompt_cn": "当我已经连续执行了一段时间，但短期结果一般，我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "继续坚持到预设复盘点，再统一调整。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "consistency:high", "rule:high"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "开始找新的节奏或机会，觉得现在不够有效。",
+              "score_payload": {
+                "archetype_vote": "opportunity_seeker",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 2,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:opportunity_seeker", "opportunity:high", "consistency:low"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "回到我过去最有效的一套做法，保证自己能做得出来。",
+              "score_payload": {
+                "archetype_vote": "experience_reliant",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 2,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 1
+                },
+                "tags": ["image:experience_reliant", "experience:high", "consistency:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "结果一般会让我焦躁，可能突然加快动作或干脆停掉。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low"]
+              }
+            }
+          ]
+        },
+        {
+          "id": "pro_F03",
+          "prompt_cn": "当我发现自己今天状态不佳（注意力差/容易被波动影响），我会：",
+          "options": [
+            {
+              "id": "A",
+              "text_cn": "主动降低动作频率或仓位，今天以保护为主。",
+              "score_payload": {
+                "archetype_vote": "defensive_observer",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 2,
+                  "action_consistency": 2
+                },
+                "tags": ["image:defensive_observer", "risk:high", "consistency:high", "opportunity:low"]
+              }
+            },
+            {
+              "id": "B",
+              "text_cn": "按规则降级执行：只做最核心的那一步。",
+              "score_payload": {
+                "archetype_vote": "rule_executor",
+                "dimension_delta": {
+                  "rule_dependence": 2,
+                  "emotion_involvement": 0,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 0,
+                  "risk_defense": 1,
+                  "action_consistency": 2
+                },
+                "tags": ["image:rule_executor", "rule:high", "consistency:high", "risk:medium"]
+              }
+            },
+            {
+              "id": "C",
+              "text_cn": "状态差就容易被带着走，我可能索性不做或干脆更激进来寻求反馈。",
+              "score_payload": {
+                "archetype_vote": "emotion_driven",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 2,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:emotion_driven", "emotion:high", "consistency:low", "opportunity:medium"]
+              }
+            },
+            {
+              "id": "D",
+              "text_cn": "用更短节奏频繁调整，试图快速找到手感。",
+              "score_payload": {
+                "archetype_vote": "impulsive_reactor",
+                "dimension_delta": {
+                  "rule_dependence": 0,
+                  "emotion_involvement": 1,
+                  "experience_reliance": 0,
+                  "opportunity_sensitivity": 1,
+                  "risk_defense": 0,
+                  "action_consistency": 0
+                },
+                "tags": ["image:impulsive_reactor", "consistency:low", "opportunity:medium", "emotion:medium"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
