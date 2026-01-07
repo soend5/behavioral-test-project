@@ -1,0 +1,43 @@
+name: DB Deploy (migrate + seed)
+
+on:
+  push:
+    branches: [ "main" ]
+
+concurrency:
+  group: db-deploy-main
+  cancel-in-progress: false
+
+jobs:
+  db:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      # 可选但强烈建议：先校验内容资产（避免把坏数据seed进生产）
+      - name: Validate content
+        run: npm run content:validate
+
+      # 生产迁移（Prisma推荐的生产方式）
+      - name: Prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL:   ${{ secrets.DIRECT_URL }}
+        run: npx prisma migrate deploy
+
+      # 生产seed（必须幂等 + 强密码gate）
+      - name: Seed prod (idempotent)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DIRECT_URL:   ${{ secrets.DIRECT_URL }}
+          SEED_ADMIN_PASSWORD: ${{ secrets.SEED_ADMIN_PASSWORD }}
+        run: npm run seed:prod
