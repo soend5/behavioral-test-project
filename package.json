@@ -19,7 +19,8 @@
     "smoke:prod-gate": "tsx scripts/smoke-prod-gate.ts",
     "smoke:v1-readonly": "tsx scripts/smoke-v1-readonly.ts",
     "smoke:invite-rules": "tsx scripts/smoke-invite-rules.ts",
-    "smoke:attempt-idempotency": "tsx scripts/smoke-attempt-idempotency.ts"
+    "smoke:attempt-idempotency": "tsx scripts/smoke-attempt-idempotency.ts",
+    "smoke:pages": "tsx scripts/smoke-pages.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
