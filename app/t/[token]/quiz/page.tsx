@@ -153,35 +153,55 @@ export default function QuizPage({ params }: { params: { token: string } }) {
 
         {error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded p-3 text-sm mb-6">
-            {error}
+            <div>{error}</div>
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button
+                onClick={() => router.push(`/t/${token}`)}
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-900"
+              >
+                返回邀请页
+              </button>
+              <button
+                onClick={() => router.push(`/t/${token}/result`)}
+                className="px-4 py-2 rounded bg-blue-600 text-white"
+              >
+                查看结果概览
+              </button>
+            </div>
           </div>
         ) : null}
 
-        <div className="space-y-6">
-          {questions.map((q) => (
-            <div key={q.id} className="border rounded p-4">
-              <div className="font-semibold mb-3">
-                {q.orderNo}. {q.stem}
+        {questions.length ? (
+          <div className="space-y-6">
+            {questions.map((q) => (
+              <div key={q.id} className="border rounded p-4">
+                <div className="font-semibold mb-3">
+                  {q.orderNo}. {q.stem}
+                </div>
+                <div className="space-y-2">
+                  {q.options.map((opt) => (
+                    <label key={opt.id} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={q.id}
+                        value={opt.id}
+                        checked={answers[q.id] === opt.id}
+                        onChange={() =>
+                          setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))
+                        }
+                      />
+                      <span>{opt.text}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-2">
-                {q.options.map((opt) => (
-                  <label key={opt.id} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={q.id}
-                      value={opt.id}
-                      checked={answers[q.id] === opt.id}
-                      onChange={() =>
-                        setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))
-                      }
-                    />
-                    <span>{opt.text}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="border rounded p-4 text-sm text-gray-700">
+            暂无题目可展示。请返回邀请页确认测评状态，或联系助教重新获取邀请链接。
+          </div>
+        )}
 
         <div className="mt-8 flex gap-3">
           <button
@@ -198,8 +218,6 @@ export default function QuizPage({ params }: { params: { token: string } }) {
             {submitting ? "提交中..." : "提交测评"}
           </button>
         </div>
-
-        <p className="text-xs text-gray-400 mt-6 break-all">Token: {token}</p>
       </div>
     </div>
   );

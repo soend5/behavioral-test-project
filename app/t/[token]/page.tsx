@@ -53,7 +53,13 @@ export default function InviteLandingPage({ params }: { params: { token: string 
     void run();
   }, [token]);
 
-  const customerName = data?.customer.nickname || data?.customer.name || "客户";
+  const participantName = data?.customer.nickname || data?.customer.name || "测评参与者";
+  const statusLabel: Record<InviteStatus, string> = {
+    active: "可开始",
+    entered: "进行中",
+    completed: "已完成",
+    expired: "已失效",
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -70,8 +76,8 @@ export default function InviteLandingPage({ params }: { params: { token: string 
         {data ? (
           <div className="space-y-2 text-sm text-gray-700 mb-6">
             <div>
-              <span className="text-gray-500">客户：</span>
-              <span>{customerName}</span>
+              <span className="text-gray-500">参与者：</span>
+              <span>{participantName}</span>
             </div>
             <div>
               <span className="text-gray-500">助教：</span>
@@ -85,18 +91,23 @@ export default function InviteLandingPage({ params }: { params: { token: string 
             </div>
             <div>
               <span className="text-gray-500">状态：</span>
-              <span>{data.status}</span>
+              <span>{statusLabel[data.status]}</span>
             </div>
           </div>
         ) : null}
 
         {data?.status === "completed" ? (
-          <Link
-            href={`/t/${token}/result`}
-            className="block text-center bg-blue-600 text-white rounded px-4 py-2"
-          >
-            查看结果
-          </Link>
+          <div className="space-y-3">
+            <div className="bg-green-50 border border-green-200 rounded p-3 text-sm text-green-900">
+              本次测评已完成。下一步建议：联系助教，获取更具体的陪跑动作。
+            </div>
+            <Link
+              href={`/t/${token}/result`}
+              className="block text-center bg-blue-600 text-white rounded px-4 py-2"
+            >
+              查看结果概览
+            </Link>
+          </div>
         ) : data?.status === "active" || data?.status === "entered" ? (
           <Link
             href={`/t/${token}/quiz`}
@@ -106,11 +117,9 @@ export default function InviteLandingPage({ params }: { params: { token: string 
           </Link>
         ) : data?.status === "expired" ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-            邀请已失效，请联系助教重新获取邀请链接。
+            邀请已失效。下一步建议：联系助教重新获取邀请链接。
           </div>
         ) : null}
-
-        <p className="text-xs text-gray-400 mt-6 break-all">Token: {token}</p>
       </div>
     </div>
   );

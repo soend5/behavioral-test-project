@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CoachNav } from "../../_components/CoachNav";
+import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
 
 type CoachTag = { id: string; tagKey: string; createdAt: string };
 type AttemptTimelineItem = {
@@ -27,6 +28,7 @@ type LatestAttempt = {
     stem: string | null;
     optionId: string;
     optionText: string | null;
+    hintTag: string | null;
   }>;
   resultSummary: any;
 };
@@ -75,6 +77,18 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     const s = new Set([...systemTags, ...coachTags.map((t) => t.tagKey)]);
     return Array.from(s.values());
   }, [systemTags, coachTags]);
+
+  const displayAllTags = useMemo(() => {
+    return allTags
+      .map(getDisplayTag)
+      .filter((t): t is NonNullable<ReturnType<typeof getDisplayTag>> => t !== null);
+  }, [allTags]);
+
+  const displaySystemTags = useMemo(() => {
+    return systemTags
+      .map(getDisplayTag)
+      .filter((t): t is NonNullable<ReturnType<typeof getDisplayTag>> => t !== null);
+  }, [systemTags]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -201,6 +215,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 <h2 className="text-lg font-semibold mb-3">最新测评</h2>
                 {data.latestAttempt ? (
                   <div className="space-y-4">
+                    {(() => {
+                      const stageMeta = getStageDisplay(data.latestAttempt.stage);
+                      return (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       <div className="border rounded p-3">
                         <div className="text-gray-500">版本</div>
@@ -216,61 +233,59 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       </div>
                       <div className="border rounded p-3">
                         <div className="text-gray-500">阶段</div>
-                        <div className="font-semibold">{data.latestAttempt.stage || "-"}</div>
+                        <div className="font-semibold">
+                          {stageMeta.labelCn.replace("陪跑阶段：", "")}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">{stageMeta.explanationCn}</div>
                       </div>
                     </div>
+                      );
+                    })()}
 
                     <div className="border rounded p-4">
-                      <div className="text-sm text-gray-500 mb-2">系统标签</div>
+                      <div className="text-sm text-gray-500 mb-2">可见标签（展示映射）</div>
                       <div className="flex flex-wrap gap-2">
-                        {data.latestAttempt.tags.map((t) => (
+                        {displaySystemTags.map((t) => (
                           <span
-                            key={t}
-                            className="text-xs bg-gray-100 border rounded px-2 py-1"
+                            key={t.tag}
+                            title={t.explanationCn}
+                            className="text-xs bg-gray-50 border rounded px-2 py-1"
                           >
-                            {t}
+                            {t.labelCn}
                           </span>
                         ))}
-                        {!data.latestAttempt.tags.length ? (
+                        {!displaySystemTags.length ? (
                           <span className="text-sm text-gray-400">无</span>
                         ) : null}
                       </div>
                     </div>
 
                     <div className="border rounded p-4">
-                      <div className="text-sm text-gray-500 mb-2">结果摘要（debug）</div>
-                      <pre className="text-xs bg-gray-50 border rounded p-3 overflow-auto">
-                        {JSON.stringify(data.latestAttempt.resultSummary, null, 2)}
-                      </pre>
-                    </div>
-
-                    <div className="border rounded p-4">
                       <div className="text-sm text-gray-500 mb-2">逐题答案</div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead>
-                            <tr className="text-left border-b">
-                              <th className="py-2 pr-2">题号</th>
-                              <th className="py-2 pr-2">题目</th>
-                              <th className="py-2 pr-2">答案</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {data.latestAttempt.answers.map((a) => (
-                              <tr key={a.questionId} className="border-b">
-                                <td className="py-2 pr-2">{a.orderNo ?? "-"}</td>
-                                <td className="py-2 pr-2">{a.stem ?? a.questionId}</td>
-                                <td className="py-2 pr-2">
+                      {data.latestAttempt.answers.length ? (
+                        <div className="space-y-3">
+                          {data.latestAttempt.answers.map((a) => {
+                            const hint = a.hintTag ? getDisplayTag(a.hintTag) : null;
+                            return (
+                              <div key={a.questionId} className="border rounded p-4 bg-white">
+                                <div className="text-sm font-semibold mb-2">
+                                  Q{a.orderNo ?? "-"}：{a.stem ?? a.questionId}
+                                </div>
+                                <div className="text-sm text-gray-900 mb-2">
+                                  <span className="text-gray-500">A：</span>
                                   {a.optionText || a.optionId}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        {!data.latestAttempt.answers.length ? (
-                          <p className="text-sm text-gray-400 mt-2">暂无答案</p>
-                        ) : null}
-                      </div>
+                                </div>
+                                <div className="text-sm text-gray-700">
+                                  <span className="text-gray-500">Hint：</span>
+                                  {hint ? `${hint.labelCn} · ${hint.explanationCn}` : "—"}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400">暂无答案</p>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -300,7 +315,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                             <td className="py-2 pr-2">
                               {a.quizVersion}/{a.version}
                             </td>
-                            <td className="py-2 pr-2">{a.stage || "-"}</td>
+                            <td className="py-2 pr-2">
+                              {getStageDisplay(a.stage).labelCn.replace("陪跑阶段：", "")}
+                            </td>
                             <td className="py-2 pr-2">{a.tags.length}</td>
                           </tr>
                         ))}
@@ -368,17 +385,20 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-semibold mb-3">标签</h2>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {allTags.map((t) => (
+                  {displayAllTags.map((t) => (
                     <span
-                      key={t}
+                      key={t.tag}
+                      title={t.explanationCn}
                       className={`text-xs border rounded px-2 py-1 ${
-                        t.startsWith("coach:") ? "bg-green-50 border-green-200" : "bg-gray-50"
+                        t.kind === "coach"
+                          ? "bg-green-50 border-green-200"
+                          : "bg-gray-50 border-gray-200"
                       }`}
                     >
-                      {t}
+                      {t.labelCn}
                     </span>
                   ))}
-                  {!allTags.length ? (
+                  {!displayAllTags.length ? (
                     <span className="text-sm text-gray-400">无</span>
                   ) : null}
                 </div>
@@ -410,7 +430,9 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                         key={t.id}
                         className="flex items-center justify-between border rounded px-3 py-2"
                       >
-                        <div className="text-sm">{t.tagKey}</div>
+                        <div className="text-sm">
+                          {getDisplayTag(t.tagKey)?.labelCn ?? "助教标记"}
+                        </div>
                         <button
                           onClick={() => void deleteTag(t.tagKey)}
                           className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"

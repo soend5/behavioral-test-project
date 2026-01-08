@@ -26,6 +26,28 @@ import { z } from "zod";
 const StringArraySchema = z.array(z.string());
 const AnswersRecordSchema = z.record(z.string().min(1), z.string().min(1));
 
+const ScorePayloadHintSchema = z.object({
+  archetype_vote: z.string().min(1).optional(),
+  tags: z.array(z.string()).optional(),
+});
+type ScorePayloadHint = z.infer<typeof ScorePayloadHintSchema>;
+const EmptyScorePayloadHint: ScorePayloadHint = {};
+
+function buildAnswerHintTag(scorePayloadJson: string | null | undefined): string | null {
+  const payload = safeJsonParseWithSchema(
+    scorePayloadJson,
+    ScorePayloadHintSchema,
+    EmptyScorePayloadHint
+  );
+  const tags = payload.tags ?? [];
+  const candidate =
+    tags.find((t) => !t.startsWith("image:") && !t.startsWith("phase:") && !t.startsWith("stability:")) ??
+    null;
+  if (candidate) return candidate;
+  if (payload.archetype_vote) return `image:${payload.archetype_vote}`;
+  return null;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -111,6 +133,7 @@ export async function GET(
         stem: string | null;
         optionId: string;
         optionText: string | null;
+        hintTag: string | null;
       }> = [];
 
       const answerKeys = Object.keys(answersRecord);
@@ -136,7 +159,12 @@ export async function GET(
 
         const questionById = new Map<
           string,
-          { orderNo: number; stem: string; optionTextById: Map<string, string> }
+          {
+            orderNo: number;
+            stem: string;
+            optionTextById: Map<string, string>;
+            optionHintTagById: Map<string, string | null>;
+          }
         >();
 
         if (quiz) {
@@ -145,6 +173,9 @@ export async function GET(
               orderNo: q.orderNo,
               stem: q.stem,
               optionTextById: new Map(q.options.map((o) => [o.id, o.text])),
+              optionHintTagById: new Map(
+                q.options.map((o) => [o.id, buildAnswerHintTag(o.scorePayloadJson)])
+              ),
             });
           }
         }
@@ -161,6 +192,7 @@ export async function GET(
               stem: q.stem,
               optionId,
               optionText: meta?.optionTextById.get(optionId) ?? null,
+              hintTag: meta?.optionHintTagById.get(optionId) ?? null,
             };
           });
 
@@ -175,6 +207,7 @@ export async function GET(
             stem: null,
             optionId,
             optionText: null,
+            hintTag: null,
           });
         }
       }
