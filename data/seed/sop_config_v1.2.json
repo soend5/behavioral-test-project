@@ -1,0 +1,380 @@
+{
+  "version": "v1.2.0",
+  "description": "SOP 配置资产 v1.2 - 营销导向但合规的 9 个 SOP，适用于交易股票的小白与散户",
+  "sop_definitions": [
+    {
+      "sop_id": "sop_pre_impulsive",
+      "sop_name": "冲动型（解释期）",
+      "sop_stage": "pre",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "容易一冲动就下单，事后才发现没想清楚",
+      "core_goal": "帮助用户意识到冲动操作的代价，建立「先想清楚再动手」的习惯",
+      "strategy_list": [
+        "用具体案例让用户回忆冲动操作的后果",
+        "引导用户说出自己的「冲动信号」",
+        "提供简单的「暂停三秒」技巧"
+      ],
+      "forbidden_list": [
+        "批评用户「你太冲动了」",
+        "暗示某种操作一定能赚钱",
+        "催促用户立刻改变"
+      ],
+      "talk_tracks": [
+        "你有没有发现，很多时候一冲动买完，回头看其实没想清楚？",
+        "下次想动手之前，能不能先问自己一句：我为什么要买？",
+        "不着急，咱们先把你最容易冲动的场景找出来。"
+      ],
+      "questions": [
+        "你最近一次冲动操作是什么时候？当时是什么让你忍不住？",
+        "如果给你三秒钟重新选，你会怎么做？"
+      ],
+      "next_action": "加入陪跑解读，一起找出你的「冲动触发点」",
+      "risk_notes": [
+        "不要用「你这样肯定亏」等绝对化表述",
+        "避免暗示任何具体买卖时机"
+      ],
+      "evidence_display": ["冲动操作", "情绪波动大", "执行不稳定"],
+      "notes": "seed: v1.2 sop for impulsive pre-stage users"
+    },
+    {
+      "sop_id": "sop_pre_hesitant",
+      "sop_name": "犹豫型（解释期）",
+      "sop_stage": "pre",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "想得太多、动得太慢，经常错过机会又后悔",
+      "core_goal": "帮助用户区分「合理谨慎」和「过度犹豫」，建立适度行动的信心",
+      "strategy_list": [
+        "肯定用户的谨慎是优点",
+        "引导用户回忆因犹豫错过的机会",
+        "提供「小步试错」的思路"
+      ],
+      "forbidden_list": [
+        "催促用户「你应该更果断」",
+        "暗示某个机会一定不能错过",
+        "用别人的成功案例施压"
+      ],
+      "talk_tracks": [
+        "谨慎是好事，但有时候想太多反而更纠结，你有这种感觉吗？",
+        "你觉得自己是「想清楚了不敢动」还是「一直想不清楚」？",
+        "咱们可以先从小的开始，不用一步到位。"
+      ],
+      "questions": [
+        "你最近一次犹豫太久错过的机会是什么？",
+        "如果当时只用很小的仓位试一下，你会不会更敢动？"
+      ],
+      "next_action": "联系助教，一起梳理你的「决策卡点」在哪里",
+      "risk_notes": [
+        "不要暗示「早点买就赚了」",
+        "避免用具体收益数字举例"
+      ],
+      "evidence_display": ["决策犹豫", "风险敏感", "机会错过"],
+      "notes": "seed: v1.2 sop for hesitant pre-stage users"
+    },
+    {
+      "sop_id": "sop_mid_inconsistent",
+      "sop_name": "执行不稳（反思期）",
+      "sop_stage": "mid",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "有想法但执行不稳，经常中途改变或放弃",
+      "core_goal": "帮助用户找到执行不稳的原因，建立「说到做到」的小目标",
+      "strategy_list": [
+        "引导用户回忆最近一次「没按计划来」的经历",
+        "帮助用户区分「计划有问题」和「执行有问题」",
+        "提供简单的「执行检查点」"
+      ],
+      "forbidden_list": [
+        "批评用户「你就是不自律」",
+        "暗示某种执行方式一定有效",
+        "用别人的执行力对比"
+      ],
+      "talk_tracks": [
+        "你有没有发现，很多时候不是计划不好，是中途自己改了？",
+        "咱们先不说对错，你觉得是什么让你中途变卦的？",
+        "下次能不能先定一个小目标，比如「这一次我就按计划来」？"
+      ],
+      "questions": [
+        "你最近一次没按计划执行是什么情况？",
+        "如果重来一次，你觉得哪个环节最容易出问题？"
+      ],
+      "next_action": "做一次复盘训练，找出你的「执行断点」",
+      "risk_notes": [
+        "不要暗示「按计划就能赚钱」",
+        "避免用具体操作案例暗示买卖时机"
+      ],
+      "evidence_display": ["执行不稳", "计划中断", "行动不一致"],
+      "notes": "seed: v1.2 sop for inconsistent mid-stage users"
+    },
+    {
+      "sop_id": "sop_mid_emotional",
+      "sop_name": "情绪化（反思期）",
+      "sop_stage": "mid",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "情绪容易影响判断，涨了兴奋、跌了焦虑",
+      "core_goal": "帮助用户识别情绪对操作的影响，建立「情绪和操作分开」的意识",
+      "strategy_list": [
+        "引导用户回忆情绪波动时的操作",
+        "帮助用户识别自己的「情绪信号」",
+        "提供「情绪冷却」的简单方法"
+      ],
+      "forbidden_list": [
+        "批评用户「你太情绪化了」",
+        "暗示某种情绪状态下应该买或卖",
+        "用「理性」「冷静」等词施压"
+      ],
+      "talk_tracks": [
+        "你有没有发现，心情好的时候和心情差的时候，做的决定很不一样？",
+        "咱们不是要消灭情绪，是要学会在情绪来的时候先缓一缓。",
+        "下次感觉情绪上来了，能不能先等 10 分钟再决定？"
+      ],
+      "questions": [
+        "你最近一次因为情绪做的操作是什么？结果怎么样？",
+        "你觉得自己是「涨了容易冲动」还是「跌了容易慌」？"
+      ],
+      "next_action": "加入陪跑解读，一起建立你的「情绪日志」",
+      "risk_notes": [
+        "不要暗示「冷静就能赚钱」",
+        "避免用具体涨跌幅举例"
+      ],
+      "evidence_display": ["情绪波动", "冲动操作", "焦虑明显"],
+      "notes": "seed: v1.2 sop for emotional mid-stage users"
+    },
+    {
+      "sop_id": "sop_post_ruleless",
+      "sop_name": "规则缺失（执行期）",
+      "sop_stage": "post",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "没有明确的操作规则，每次都是临时决定",
+      "core_goal": "帮助用户建立最基本的操作规则，从「随机」变成「有章可循」",
+      "strategy_list": [
+        "引导用户回忆「没有规则」带来的困扰",
+        "帮助用户从最简单的规则开始",
+        "提供「规则模板」供参考"
+      ],
+      "forbidden_list": [
+        "直接给用户具体的买卖规则",
+        "暗示某种规则一定有效",
+        "用「你应该有规则」施压"
+      ],
+      "talk_tracks": [
+        "你有没有发现，每次都是临时决定，事后很难总结经验？",
+        "咱们不用一下子定很多规则，先从一条最简单的开始。",
+        "比如「亏多少就先出来」，你觉得这条你能接受吗？"
+      ],
+      "questions": [
+        "你现在有没有任何一条自己一直在遵守的规则？",
+        "如果让你定一条最简单的规则，你会定什么？"
+      ],
+      "next_action": "联系助教，一起制定你的「第一条规则」",
+      "risk_notes": [
+        "不要直接给出具体的止损止盈点位",
+        "避免暗示「有规则就能赚钱」"
+      ],
+      "evidence_display": ["规则缺失", "随机操作", "无章可循"],
+      "notes": "seed: v1.2 sop for ruleless post-stage users"
+    },
+    {
+      "sop_id": "sop_post_overconfident",
+      "sop_name": "过度自信（执行期）",
+      "sop_stage": "post",
+      "status": "active",
+      "priority": 10,
+      "state_summary": "觉得自己已经懂了，不太愿意听不同意见",
+      "core_goal": "帮助用户保持开放心态，建立「持续学习」的习惯",
+      "strategy_list": [
+        "肯定用户的经验和能力",
+        "用提问引导用户发现盲点",
+        "提供「复盘」的价值"
+      ],
+      "forbidden_list": [
+        "直接否定用户的判断",
+        "用「你太自信了」批评",
+        "暗示用户一定会失败"
+      ],
+      "talk_tracks": [
+        "你的经验确实很宝贵，不过你有没有想过，市场也在变？",
+        "咱们不是说你不对，是想看看有没有什么地方可以更好。",
+        "你愿不愿意试试，每次操作完都简单记录一下？"
+      ],
+      "questions": [
+        "你最近一次觉得「我判断对了」是什么时候？后来验证了吗？",
+        "如果有人给你不同的看法，你一般会怎么处理？"
+      ],
+      "next_action": "做一次复盘训练，看看有没有「意外发现」",
+      "risk_notes": [
+        "不要暗示「谦虚就能赚钱」",
+        "避免用具体案例暗示用户判断错误"
+      ],
+      "evidence_display": ["过度自信", "不听建议", "经验依赖"],
+      "notes": "seed: v1.2 sop for overconfident post-stage users"
+    }
+  ],
+  "sop_rules": [
+    {
+      "rule_id": "rule_pre_impulsive_01",
+      "sop_id": "sop_pre_impulsive",
+      "required_stage": "pre",
+      "required_tags": ["image:impulsive_reactor"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_pre_impulsive_02",
+      "sop_id": "sop_pre_impulsive",
+      "required_stage": "pre",
+      "required_tags": ["consistency:low", "emotion:medium"],
+      "excluded_tags": [],
+      "confidence": 70,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_pre_impulsive_03",
+      "sop_id": "sop_pre_impulsive",
+      "required_stage": "pre",
+      "required_tags": ["opportunity:high", "consistency:low"],
+      "excluded_tags": ["rule:high"],
+      "confidence": 65,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_pre_hesitant_01",
+      "sop_id": "sop_pre_hesitant",
+      "required_stage": "pre",
+      "required_tags": ["image:defensive_observer"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_pre_hesitant_02",
+      "sop_id": "sop_pre_hesitant",
+      "required_stage": "pre",
+      "required_tags": ["risk:high", "opportunity:low"],
+      "excluded_tags": [],
+      "confidence": 70,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_pre_hesitant_03",
+      "sop_id": "sop_pre_hesitant",
+      "required_stage": "pre",
+      "required_tags": ["risk:high", "consistency:medium"],
+      "excluded_tags": ["opportunity:high"],
+      "confidence": 65,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_inconsistent_01",
+      "sop_id": "sop_mid_inconsistent",
+      "required_stage": "mid",
+      "required_tags": ["consistency:low"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_inconsistent_02",
+      "sop_id": "sop_mid_inconsistent",
+      "required_stage": "mid",
+      "required_tags": ["consistency:medium", "rule:medium"],
+      "excluded_tags": ["rule:high"],
+      "confidence": 70,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_inconsistent_03",
+      "sop_id": "sop_mid_inconsistent",
+      "required_stage": "mid",
+      "required_tags": ["image:opportunity_seeker", "consistency:medium"],
+      "excluded_tags": [],
+      "confidence": 65,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_emotional_01",
+      "sop_id": "sop_mid_emotional",
+      "required_stage": "mid",
+      "required_tags": ["image:emotion_driven"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_emotional_02",
+      "sop_id": "sop_mid_emotional",
+      "required_stage": "mid",
+      "required_tags": ["emotion:high"],
+      "excluded_tags": [],
+      "confidence": 75,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_mid_emotional_03",
+      "sop_id": "sop_mid_emotional",
+      "required_stage": "mid",
+      "required_tags": ["emotion:medium", "consistency:low"],
+      "excluded_tags": ["rule:high"],
+      "confidence": 65,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_ruleless_01",
+      "sop_id": "sop_post_ruleless",
+      "required_stage": "post",
+      "required_tags": ["rule:low"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_ruleless_02",
+      "sop_id": "sop_post_ruleless",
+      "required_stage": "post",
+      "required_tags": ["rule:medium", "consistency:low"],
+      "excluded_tags": ["rule:high"],
+      "confidence": 70,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_ruleless_03",
+      "sop_id": "sop_post_ruleless",
+      "required_stage": "post",
+      "required_tags": ["image:opportunity_seeker"],
+      "excluded_tags": ["rule:high"],
+      "confidence": 65,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_overconfident_01",
+      "sop_id": "sop_post_overconfident",
+      "required_stage": "post",
+      "required_tags": ["image:experience_reliant"],
+      "excluded_tags": [],
+      "confidence": 80,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_overconfident_02",
+      "sop_id": "sop_post_overconfident",
+      "required_stage": "post",
+      "required_tags": ["experience:high", "rule:medium"],
+      "excluded_tags": [],
+      "confidence": 70,
+      "status": "active"
+    },
+    {
+      "rule_id": "rule_post_overconfident_03",
+      "sop_id": "sop_post_overconfident",
+      "required_stage": "post",
+      "required_tags": ["experience:high", "consistency:medium"],
+      "excluded_tags": ["emotion:high"],
+      "confidence": 65,
+      "status": "active"
+    }
+  ]
+}
