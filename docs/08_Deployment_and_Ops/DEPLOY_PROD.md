@@ -3,7 +3,7 @@
 本文档说明如何将项目部署到生产环境（以 Vercel 为例，但适用于任何支持 Next.js 的平台）。
 
 > 更新（2026-01-07）：数据库迁移/seed 已与 Vercel Build 解耦，改由 GitHub Actions 的 DB Deploy 流水线执行（带 production environment 审批与并发保护）。
-> - 详见：`docs/260107.md`、`docs/GITHUB_ENV_PRODUCTION.md`
+> - 详见：`docs/08_Deployment_and_Ops/260107.md`、`docs/08_Deployment_and_Ops/GITHUB_ENV_PRODUCTION.md`
 > - Vercel 只负责应用发布，不在 Vercel Build 阶段执行 migrate/seed。
 
 ---

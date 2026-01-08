@@ -137,13 +137,13 @@ Step 10: Smoke test（或手工验收清单）+ README 完整
 
 A）把接口清单“告知 Cursor”的最佳方式：先落成仓库内规范文档（强烈推荐）
 目的：让 Cursor 永远有一个“唯一真相”，避免你每次口头解释导致跑偏。
-用法：在 Cursor 里让它先创建 docs/API_SPEC.md 和 docs/RBAC_SPEC.md，然后实现代码。
+用法：在 Cursor 里让它先创建 docs/04_API_and_Security/API_SPEC.md 和 docs/04_API_and_Security/RBAC_SPEC.md，然后实现代码。
 
 你现在在一个 Next.js App Router + TypeScript + Prisma(Supabase Postgres) 项目里工作。请先不要继续写功能代码，先完成“规范落库”。
 
 任务 1：在仓库中创建两个文档（如果已存在则更新，确保内容与本 prompt 一致）：
-- docs/API_SPEC.md
-- docs/RBAC_SPEC.md
+- docs/04_API_and_Security/API_SPEC.md
+- docs/04_API_and_Security/RBAC_SPEC.md
 
 任务 2：把以下内容按“可执行规范”写入文档（要包含：路由、方法、入参、出参、错误码、幂等策略、RBAC 校验点、审计写入点）。
 注意：
@@ -153,7 +153,7 @@ A）把接口清单“告知 Cursor”的最佳方式：先落成仓库内规范
 - invite completed 后禁止继续 answer/submit（只允许读 result）
 - token 只存 hash；创建时只展示原 token 一次
 
-接口范围（必须全部写入 docs/API_SPEC.md）：
+接口范围（必须全部写入 docs/04_API_and_Security/API_SPEC.md）：
 1) Client
 - GET /api/public/invite/resolve?token=...
 - POST /api/attempt/start
@@ -186,7 +186,7 @@ A）把接口清单“告知 Cursor”的最佳方式：先落成仓库内规范
 - CRUD /api/admin/options
 - GET /api/admin/audit
 
-RBAC 规则（写入 docs/RBAC_SPEC.md）：
+RBAC 规则（写入 docs/04_API_and_Security/RBAC_SPEC.md）：
 - public：只读首页
 - client：仅 token 绑定 invite 的测评与结果
 - coach：仅能访问自己 coach_id 绑定的 customers/invites/attempts/coach_tags
@@ -201,9 +201,9 @@ RBAC 规则（写入 docs/RBAC_SPEC.md）：
 
 我们进入下一步：让 Cursor 按 API_SPEC.md 真正把第一批“可跑通闭环”的接口落地（先把 Client 邀请测评链路跑通，后面再做 Coach/Admin）。
 
-下面给你一份直接复制给 Cursor 的下一步主控 Prompt（它会读取你刚写好的 docs/API_SPEC.md，按文档实现并自检）。
+下面给你一份直接复制给 Cursor 的下一步主控 Prompt（它会读取你刚写好的 docs/04_API_and_Security/API_SPEC.md，按文档实现并自检）。
 
-你已经在仓库中生成了 docs/API_SPEC.md（接口规范）与可能的 docs/RBAC_SPEC.md。现在请严格以这些文档为唯一真相实现第一批“Client 邀请测评闭环”接口，并确保可手工验收跑通。
+你已经在仓库中生成了 docs/04_API_and_Security/API_SPEC.md（接口规范）与可能的 docs/04_API_and_Security/RBAC_SPEC.md。现在请严格以这些文档为唯一真相实现第一批“Client 邀请测评闭环”接口，并确保可手工验收跑通。
 
 【本轮范围（只做这些，不要扩散到 coach/admin 其它功能）】
 实现以下 6 个接口（按顺序）：
@@ -271,7 +271,7 @@ F) 数据写入（submit 必须写）
 1) 新增门禁工具文件（lib/），提供统一的鉴权、授权、ownership 校验、token→invite 解析、错误返回
 2) 将这些门禁工具回填到“所有已实现的 API routes”（至少是 client 测评闭环那 6 个接口）
 3) 增加最小 smoke test（脚本或手工清单）验证关键越权场景被拦截
-4) 更新 docs/RBAC_SPEC.md（如存在）补充“门禁函数一览 + 每个 route 使用哪些门禁”
+4) 更新 docs/04_API_and_Security/RBAC_SPEC.md（如存在）补充“门禁函数一览 + 每个 route 使用哪些门禁”
 
 【硬性约束】
 - 所有 API route 的校验逻辑必须收敛到门禁函数；route 内只做：解析入参 → 调门禁 → 执行业务 → 返回统一响应
