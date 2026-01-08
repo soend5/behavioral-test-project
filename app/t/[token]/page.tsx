@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
 
 type InviteStatus = "active" | "entered" | "completed" | "expired";
 type InviteResolve = {
@@ -67,7 +68,7 @@ export default function InviteLandingPage({ params }: { params: { token: string 
         <h1 className="text-2xl font-bold mb-2">欢迎参加测评</h1>
         <p className="text-gray-600 mb-6">请确认邀请信息后开始测评。</p>
         <div className="mb-6 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
-          本测评用于生成交易行为结构画像与沟通建议，不构成投资顾问服务或任何买卖建议，不承诺收益。
+          {COMPLIANCE_NOTICE_CN}
         </div>
 
         {loading ? <div>加载中...</div> : null}

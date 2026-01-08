@@ -14,7 +14,7 @@
 
 ## 核心路径（最小闭环）
 
-1. Admin 配置内容资产（v1 默认只读；新版本以 `quizVersion` 演进）
+1. Admin 配置内容资产（题库/文案/手册/方法论可编辑；建议以 `quizVersion` 演进新版本）
 2. Coach 创建客户与邀请（invite/token）
 3. Client 通过 token 启动测评、答题、提交
 4. Client 查看结果（画像与建议）

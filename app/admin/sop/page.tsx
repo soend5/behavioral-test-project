@@ -35,15 +35,18 @@ export default function AdminSOPPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <AdminNav />
-        <div className="p-8">加载中...</div>
+        <div className="max-w-7xl mx-auto p-4">加载中...</div>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
-      <div className="p-8">
-        <h1 className="text-2xl font-bold mb-4">SOP 配置管理</h1>
+      <div className="max-w-7xl mx-auto p-4">
+        <h1 className="text-2xl font-bold mb-1">SOP 配置管理</h1>
+        <p className="text-sm text-gray-600 mb-4">
+          管理 SOP Definition 与规则命中逻辑（用于助教端 realtime_panel）。
+        </p>
 
         {error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded p-4 mb-4 text-sm">
@@ -63,27 +66,27 @@ export default function AdminSOPPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow p-4">
-            <table className="w-full">
+          <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
+            <table className="w-full text-sm">
               <thead>
-                <tr>
-                  <th className="text-left">SOP ID</th>
-                  <th className="text-left">名称</th>
-                  <th className="text-left">阶段</th>
-                  <th className="text-left">优先级</th>
-                  <th className="text-left">状态</th>
-                  <th className="text-left">规则数</th>
+                <tr className="text-left border-b">
+                  <th className="py-2 pr-2">SOP ID</th>
+                  <th className="py-2 pr-2">名称</th>
+                  <th className="py-2 pr-2">阶段</th>
+                  <th className="py-2 pr-2">优先级</th>
+                  <th className="py-2 pr-2">状态</th>
+                  <th className="py-2 pr-2">规则数</th>
                 </tr>
               </thead>
               <tbody>
                 {sops.map((sop) => (
-                  <tr key={sop.sopId}>
-                    <td>{sop.sopId}</td>
-                    <td>{sop.sopName}</td>
-                    <td>{sop.sopStage}</td>
-                    <td>{sop.priority}</td>
-                    <td>{sop.status}</td>
-                    <td>{sop.ruleCount}</td>
+                  <tr key={sop.sopId} className="border-b">
+                    <td className="py-2 pr-2">{sop.sopId}</td>
+                    <td className="py-2 pr-2">{sop.sopName}</td>
+                    <td className="py-2 pr-2">{sop.sopStage}</td>
+                    <td className="py-2 pr-2">{sop.priority}</td>
+                    <td className="py-2 pr-2">{sop.status}</td>
+                    <td className="py-2 pr-2">{sop.ruleCount}</td>
                   </tr>
                 ))}
               </tbody>

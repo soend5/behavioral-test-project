@@ -15,6 +15,11 @@ import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
 import { safeJsonParse } from "@/lib/json";
+import { z } from "zod";
+
+const DeleteSchema = z.object({
+  confirmText: z.literal("确认删除"),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -34,11 +39,6 @@ export async function PATCH(
 
     if (!option) {
       return fail(ErrorCode.NOT_FOUND, "选项不存在");
-    }
-
-    // v1 题库只读（防止破坏式修改已上线版本）
-    if (option.question?.quiz?.quizVersion === "v1") {
-      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
     }
 
     // 验证 scorePayloadJson 格式（如果提供）
@@ -116,6 +116,54 @@ export async function PATCH(
       return fail(error.message, "选项不存在");
     }
     console.error("Update option error:", error);
+    return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await requireAdmin();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
+
+    const parsed = DeleteSchema.safeParse(body);
+    if (!parsed.success) {
+      return fail(ErrorCode.VALIDATION_ERROR, "请手动输入“确认删除”以继续");
+    }
+
+    const existing = await prisma.option.findUnique({
+      where: { id: params.id },
+      include: { question: { select: { quiz: { select: { quizVersion: true } } } } },
+    });
+
+    if (!existing) {
+      return fail(ErrorCode.NOT_FOUND, "选项不存在");
+    }
+
+    const deleted = await prisma.option.delete({ where: { id: params.id } });
+
+    await writeAudit(prisma, session.user.id, "admin.delete_option", "option", deleted.id, {
+      questionId: deleted.questionId,
+      stableId: deleted.stableId,
+      orderNo: deleted.orderNo,
+    });
+
+    return ok({ deleted: true, id: deleted.id });
+  } catch (error: any) {
+    if (error.message === ErrorCode.UNAUTHORIZED || error.message === ErrorCode.FORBIDDEN) {
+      return fail(error.message, "未登录或权限不足");
+    }
+    if (error.message === ErrorCode.NOT_FOUND) {
+      return fail(error.message, "选项不存在");
+    }
+    console.error("Delete option error:", error);
     return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
   }
 }

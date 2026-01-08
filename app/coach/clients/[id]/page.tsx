@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CoachNav } from "../../_components/CoachNav";
 import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
+import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
 
 type CoachTag = { id: string; tagKey: string; createdAt: string };
 type AttemptTimelineItem = {
@@ -186,12 +187,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
       <CoachNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">客户详情</h1>
+          <h1 className="text-2xl font-bold">参与者详情</h1>
           <Link
             href="/coach/dashboard"
             className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
           >
-            返回客户列表
+            返回档案列表
           </Link>
         </div>
 
@@ -207,7 +208,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">客户信息</h2>
+                <h2 className="text-lg font-semibold mb-3">参与者信息</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                   <div>
                     <span className="text-gray-500">昵称：</span>
@@ -293,7 +294,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                                   {a.optionText || a.optionId}
                                 </div>
                                 <div className="text-sm text-gray-700">
-                                  <span className="text-gray-500">Hint：</span>
+                                  <span className="text-gray-500">行为点：</span>
                                   {hint ? `${hint.labelCn} · ${hint.explanationCn}` : "—"}
                                 </div>
                               </div>
@@ -351,7 +352,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-semibold mb-3">实时陪跑提示区</h2>
                 <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
-                  提示：以下为沟通策略建议与行为结构画像参考，不构成投资顾问服务或任何买卖建议，不承诺收益。
+                  {COMPLIANCE_NOTICE_CN}
                 </div>
                 {data.realtimePanel ? (
                   <div className="space-y-3 text-sm">
@@ -485,7 +486,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             </div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow-lg p-6">未找到客户</div>
+          <div className="bg-white rounded-lg shadow-lg p-6">未找到档案</div>
         )}
       </div>
     </div>

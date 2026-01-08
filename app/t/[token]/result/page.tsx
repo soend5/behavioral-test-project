@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDisplayTag, pickHighlightBehaviorTags } from "@/lib/tag-display";
+import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
 
 type ApiOk<T> = { ok: true; data: T };
 type ApiFail = { ok: false; error: { code: string; message: string } };
@@ -132,7 +133,7 @@ export default function ResultPage({ params }: { params: { token: string } }) {
                 </Link>
               </div>
               <div className="mt-3 text-xs text-blue-800">
-                提示：本页仅用于沟通参考，不构成投资顾问服务或任何买卖建议，不承诺收益。
+                {COMPLIANCE_NOTICE_CN}
               </div>
             </section>
           </div>

@@ -7,14 +7,15 @@ import { signOut } from "next-auth/react";
 type NavItem = { href: string; label: string };
 
 const navItems: NavItem[] = [
-  { href: "/admin", label: "Dashboard" },
-  { href: "/admin/quiz", label: "Quizzes" },
-  { href: "/admin/sop", label: "SOP Config" },
-  { href: "/admin/archetypes", label: "Archetypes" },
-  { href: "/admin/training-handbook", label: "Training Handbook" },
-  { href: "/admin/methodology", label: "Methodology" },
-  { href: "/admin/coaches", label: "Coaches" },
-  { href: "/admin/audit", label: "Audit" }
+  { href: "/admin", label: "总览" },
+  { href: "/admin/settings", label: "系统设置" },
+  { href: "/admin/quiz", label: "题库" },
+  { href: "/admin/sop", label: "SOP 配置" },
+  { href: "/admin/archetypes", label: "画像文案" },
+  { href: "/admin/training-handbook", label: "内训手册" },
+  { href: "/admin/methodology", label: "方法论" },
+  { href: "/admin/coaches", label: "助教账号" },
+  { href: "/admin/audit", label: "审计日志" }
 ];
 
 export function AdminNav() {
@@ -23,7 +24,7 @@ export function AdminNav() {
   return (
     <div className="bg-white border-b">
       <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-2">
-        <div className="font-semibold mr-2">Admin</div>
+        <div className="font-semibold mr-2">管理后台</div>
         <div className="flex flex-wrap gap-2 items-center flex-1">
           {navItems.map((item) => {
             const active =
@@ -48,10 +49,9 @@ export function AdminNav() {
           onClick={() => signOut({ callbackUrl: "/admin/login" })}
           className="text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 border border-gray-200"
         >
-          Sign out
+          退出登录
         </button>
       </div>
     </div>
   );
 }
-

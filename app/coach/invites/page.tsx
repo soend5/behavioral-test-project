@@ -23,6 +23,12 @@ export default function InvitesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [invites, setInvites] = useState<Invite[]>([]);
+  const statusLabel: Record<string, string> = {
+    active: "可开始",
+    entered: "进行中",
+    completed: "已完成",
+    expired: "已失效",
+  };
 
   async function load() {
     setLoading(true);
@@ -74,12 +80,17 @@ export default function InvitesPage() {
       <CoachNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">邀请列表</h1>
+          <div>
+            <h1 className="text-2xl font-bold">邀请管理</h1>
+            <div className="text-sm text-gray-600 mt-1">
+              管理邀请链接与状态；同一参与者同版本仅允许 1 个 active 邀请。
+            </div>
+          </div>
           <Link
             href="/coach/invites/new"
             className="px-4 py-2 rounded bg-blue-600 text-white"
           >
-            创建邀请
+            新建邀请
           </Link>
         </div>
 
@@ -97,7 +108,7 @@ export default function InvitesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left border-b">
-                    <th className="py-2 pr-2">客户</th>
+                    <th className="py-2 pr-2">参与者</th>
                     <th className="py-2 pr-2">状态</th>
                     <th className="py-2 pr-2">版本</th>
                     <th className="py-2 pr-2">创建时间</th>
@@ -113,7 +124,7 @@ export default function InvitesPage() {
                         </div>
                         <div className="text-xs text-gray-500">{inv.id}</div>
                       </td>
-                      <td className="py-2 pr-2">{inv.status}</td>
+                      <td className="py-2 pr-2">{statusLabel[inv.status] ?? inv.status}</td>
                       <td className="py-2 pr-2">
                         {inv.quizVersion} / {inv.version}
                       </td>
@@ -126,14 +137,14 @@ export default function InvitesPage() {
                             href={`/coach/clients/${inv.customer.id}`}
                             className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
                           >
-                            客户详情
+                            查看档案
                           </Link>
                           {(inv.status === "active" || inv.status === "entered") ? (
                             <button
                               onClick={() => void expire(inv.id)}
                               className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
                             >
-                              失效
+                              设为失效
                             </button>
                           ) : null}
                         </div>

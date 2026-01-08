@@ -24,34 +24,36 @@ export default function AdminAuditPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <AdminNav />
-        <div className="p-8">加载中...</div>
+        <div className="max-w-7xl mx-auto p-4">加载中...</div>
       </div>
     );
 
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
-      <div className="p-8">
+      <div className="max-w-7xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-4">审计日志</h1>
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr>
-                <th className="text-left">时间</th>
-                <th className="text-left">操作人</th>
-                <th className="text-left">操作</th>
-                <th className="text-left">目标类型</th>
-                <th className="text-left">目标ID</th>
+              <tr className="text-left border-b">
+                <th className="py-2 pr-2">时间</th>
+                <th className="py-2 pr-2">操作人</th>
+                <th className="py-2 pr-2">操作</th>
+                <th className="py-2 pr-2">目标类型</th>
+                <th className="py-2 pr-2">目标ID</th>
               </tr>
             </thead>
             <tbody>
               {logs.map((log) => (
-                <tr key={log.id}>
-                  <td>{new Date(log.createdAt).toLocaleString()}</td>
-                  <td>{log.actorUser?.username}</td>
-                  <td>{log.action}</td>
-                  <td>{log.targetType}</td>
-                  <td>{log.targetId}</td>
+                <tr key={log.id} className="border-b">
+                  <td className="py-2 pr-2">
+                    {new Date(log.createdAt).toLocaleString()}
+                  </td>
+                  <td className="py-2 pr-2">{log.actorUser?.username}</td>
+                  <td className="py-2 pr-2">{log.action}</td>
+                  <td className="py-2 pr-2">{log.targetType}</td>
+                  <td className="py-2 pr-2">{log.targetId}</td>
                 </tr>
               ))}
             </tbody>
@@ -60,7 +62,7 @@ export default function AdminAuditPage() {
             <button
               onClick={() => setPage(page - 1)}
               disabled={page === 1}
-              className="mr-2 px-4 py-2 bg-gray-200 rounded"
+              className="mr-2 px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
             >
               上一页
             </button>

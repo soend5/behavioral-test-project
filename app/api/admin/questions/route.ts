@@ -98,11 +98,6 @@ export async function POST(request: NextRequest) {
       return fail(ErrorCode.NOT_FOUND, "题库不存在");
     }
 
-    // v1 题库只读（防止破坏式修改已上线版本）
-    if (quiz.quizVersion === "v1") {
-      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
-    }
-
     // 创建题目
     const resolvedStableId =
       typeof stableId === "string" && stableId.trim() ? stableId.trim() : `order_${parsedOrderNo}`;

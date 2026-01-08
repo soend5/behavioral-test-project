@@ -101,11 +101,6 @@ export async function POST(request: NextRequest) {
       return fail(ErrorCode.NOT_FOUND, "题目不存在");
     }
 
-    // v1 题库只读（防止破坏式修改已上线版本）
-    if (question.quiz?.quizVersion === "v1") {
-      return fail(ErrorCode.VALIDATION_ERROR, "v1 题库默认只读，请创建新 quizVersion");
-    }
-
     // 验证 scorePayloadJson 格式（如果提供）
     let scorePayload = null;
     if (scorePayloadJson) {

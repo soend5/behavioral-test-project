@@ -583,7 +583,41 @@
 
 ---
 
-### 2.6 创建邀请链接
+### 2.6 获取助教设置
+
+**路由**: `GET /api/coach/settings`
+
+**响应**:
+```json
+{
+  "ok": true,
+  "data": {
+    "inviteDefaultQuizVersion": "v1"
+  }
+}
+```
+
+**说明**:
+- 获取助教端只读的全局默认配置
+- 用于助教创建邀请时自动填充 quizVersion
+
+**错误码**:
+- `UNAUTHORIZED`: 未登录
+- `FORBIDDEN`: 非 coach/admin
+
+**RBAC 校验点**:
+- 必须登录
+- role 必须是 `coach` 或 `admin`
+
+**审计写入点**:
+- 无（读操作，不记录）
+
+**幂等策略**:
+- GET 请求，天然幂等
+
+---
+
+### 2.7 创建邀请链接
 
 **路由**: `POST /api/coach/invites`
 
@@ -592,10 +626,13 @@
 {
   "customerId": "customer_id",
   "version": "fast" | "pro",
-  "quizVersion": "v1",
   "expiresAt": "2024-12-31T23:59:59Z"
 }
 ```
+
+**说明**:
+- `quizVersion` 不再需要手动指定，系统自动使用默认 quizVersion
+- 助教只需选择 fast/pro 版本
 
 **响应**:
 ```json
@@ -641,7 +678,7 @@
 
 ---
 
-### 2.7 获取邀请列表
+### 2.8 获取邀请列表
 
 **路由**: `GET /api/coach/invites`
 
@@ -690,7 +727,7 @@
 
 ---
 
-### 2.8 失效邀请链接
+### 2.9 失效邀请链接
 
 **路由**: `POST /api/coach/invites/:id/expire`
 
@@ -729,7 +766,7 @@
 
 ---
 
-### 2.9 添加客户标签
+### 2.10 添加客户标签
 
 **路由**: `POST /api/coach/customers/:id/tags`
 
@@ -778,7 +815,7 @@
 
 ---
 
-### 2.10 删除客户标签
+### 2.11 删除客户标签
 
 **路由**: `DELETE /api/coach/customers/:id/tags`
 
@@ -817,7 +854,89 @@
 
 ## 3. Admin 端接口
 
-### 3.1 创建助教账号
+### 3.1 系统设置
+
+#### 3.1.1 获取系统设置
+
+**路由**: `GET /api/admin/settings`
+
+**响应**:
+```json
+{
+  "ok": true,
+  "data": {
+    "inviteDefaultQuizVersion": "v1",
+    "availableQuizVersions": ["v2", "v1"]
+  }
+}
+```
+
+**说明**:
+- `inviteDefaultQuizVersion`: 助教创建邀请时的默认 quizVersion
+- `availableQuizVersions`: 系统中所有可用的 quizVersion（按版本号倒序）
+
+**错误码**:
+- `UNAUTHORIZED`: 未登录
+- `FORBIDDEN`: 非 admin
+
+**RBAC 校验点**:
+- 必须登录
+- **严格校验**: role 必须是 `admin`
+
+**审计写入点**:
+- 无（读操作，不记录）
+
+**幂等策略**:
+- GET 请求，天然幂等
+
+---
+
+#### 3.1.2 更新系统设置
+
+**路由**: `PATCH /api/admin/settings`
+
+**请求体**:
+```json
+{
+  "inviteDefaultQuizVersion": "v2"
+}
+```
+
+**响应**:
+```json
+{
+  "ok": true,
+  "data": {
+    "inviteDefaultQuizVersion": "v2",
+    "updatedAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+**说明**:
+- 更新助教创建邀请时的默认 quizVersion
+- 系统会验证该 quizVersion 是否同时存在 fast 与 pro 两套题库
+- 两套题库的 status 必须为 `active`
+
+**错误码**:
+- `UNAUTHORIZED`: 未登录
+- `FORBIDDEN`: 非 admin
+- `VALIDATION_ERROR`: quizVersion 不存在或不满足要求（必须同时存在 fast/pro 且均为 active）
+- `INTERNAL_ERROR`: 系统设置表未初始化
+
+**RBAC 校验点**:
+- 必须登录
+- **严格校验**: role 必须是 `admin`
+
+**审计写入点**:
+- `action: "admin.update_system_setting"`, `target_type: "system_setting"`, `target_id: "invite_default_quiz_version"`
+
+**幂等策略**:
+- 支持重复更新（幂等）
+
+---
+
+### 3.2 创建助教账号
 
 **路由**: `POST /api/admin/coaches`
 
@@ -864,7 +983,7 @@
 
 ---
 
-### 3.2 更新助教账号
+### 3.3 更新助教账号
 
 **路由**: `PATCH /api/admin/coaches/:id`
 
@@ -912,7 +1031,7 @@
 
 ---
 
-### 3.3 SOP Definition CRUD
+### 3.4 SOP Definition CRUD
 
 #### 3.3.1 创建 SOP Definition
 
@@ -995,7 +1114,7 @@
 
 ---
 
-### 3.4 SOP Rule CRUD
+### 3.5 SOP Rule CRUD
 
 **路由**:
 - `POST /api/admin/sop/rule` - 创建
@@ -1026,7 +1145,7 @@
 
 ---
 
-### 3.5 Coaching Stage CRUD
+### 3.6 Coaching Stage CRUD
 
 **路由**:
 - `POST /api/admin/sop/stage` - 创建
@@ -1056,7 +1175,7 @@
 
 ---
 
-### 3.6 SOP Stage Map CRUD
+### 3.7 SOP Stage Map CRUD
 
 **路由**:
 - `POST /api/admin/sop/stage-map` - 创建
@@ -1084,7 +1203,7 @@
 
 ---
 
-### 3.7 Quiz CRUD
+### 3.8 Quiz CRUD
 
 **路由**:
 - `POST /api/admin/quiz` - 创建
@@ -1112,7 +1231,7 @@
 
 ---
 
-### 3.8 Questions CRUD
+### 3.9 Questions CRUD
 
 **路由**:
 - `POST /api/admin/questions` - 创建
@@ -1140,7 +1259,7 @@
 
 ---
 
-### 3.9 Options CRUD
+### 3.10 Options CRUD
 
 **路由**:
 - `POST /api/admin/options` - 创建
@@ -1168,7 +1287,7 @@
 
 ---
 
-### 3.10 获取审计日志
+### 3.11 获取审计日志
 
 **路由**: `GET /api/admin/audit`
 

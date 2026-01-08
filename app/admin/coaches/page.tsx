@@ -167,7 +167,7 @@ export default function AdminCoachesPage() {
                   <tr className="text-left border-b">
                     <th className="py-2 pr-2">用户名</th>
                     <th className="py-2 pr-2">状态</th>
-                    <th className="py-2 pr-2">客户数</th>
+                    <th className="py-2 pr-2">档案数</th>
                     <th className="py-2 pr-2">创建时间</th>
                     <th className="py-2 pr-2">操作</th>
                   </tr>

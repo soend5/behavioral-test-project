@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 const links: Array<{ href: string; label: string }> = [
-  { href: "/coach/dashboard", label: "客户" },
-  { href: "/coach/invites", label: "邀请" },
-  { href: "/coach/invites/new", label: "创建邀请" },
+  { href: "/coach/dashboard", label: "参与者档案" },
+  { href: "/coach/invites", label: "邀请管理" },
+  { href: "/coach/invites/new", label: "新建邀请" },
 ];
 
 export function CoachNav() {
@@ -18,7 +18,7 @@ export function CoachNav() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/coach/dashboard" className="font-semibold">
-            助教后台
+            助教工作台
           </Link>
           <div className="flex items-center gap-2 text-sm">
             {links.map((l) => {
@@ -41,10 +41,9 @@ export function CoachNav() {
           onClick={() => signOut({ callbackUrl: "/coach/login" })}
           className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
         >
-          退出
+          退出登录
         </button>
       </div>
     </div>
   );
 }
-

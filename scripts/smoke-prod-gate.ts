@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, stat } from "node:fs/promises";
 import path from "node:path";
 import { PrismaClient } from "@prisma/client";
 
@@ -174,38 +174,6 @@ async function checkSeedStatus(prisma: PrismaClient): Promise<CheckResult> {
   return { ok: true };
 }
 
-async function checkV1ReadonlyGuards(): Promise<CheckResult> {
-  const files = [
-    "app/api/admin/questions/route.ts",
-    "app/api/admin/questions/[id]/route.ts",
-    "app/api/admin/options/route.ts",
-    "app/api/admin/options/[id]/route.ts",
-  ];
-
-  const re = /quizVersion\s*===\s*["']v1["']/;
-
-  const missing: string[] = [];
-  for (const file of files) {
-    const abs = path.join(process.cwd(), file);
-    let content: string;
-    try {
-      content = await readFile(abs, "utf8");
-    } catch {
-      missing.push(`${file} (not found)`);
-      continue;
-    }
-    if (!re.test(content)) {
-      missing.push(`${file} (no v1 readonly guard found)`);
-    }
-  }
-
-  if (missing.length > 0) {
-    return { ok: false, message: missing.join("; ") };
-  }
-
-  return { ok: true };
-}
-
 async function main() {
   printHeader("smoke:prod-gate (read-only)");
 
@@ -222,7 +190,6 @@ async function main() {
     const checks: Array<[string, () => Promise<CheckResult>]> = [
       ["migrations applied", () => checkMigrationsApplied(prisma)],
       ["seed status (v1)", () => checkSeedStatus(prisma)],
-      ["v1 readonly guards (API hard reject)", () => checkV1ReadonlyGuards()],
     ];
 
     let allOk = true;

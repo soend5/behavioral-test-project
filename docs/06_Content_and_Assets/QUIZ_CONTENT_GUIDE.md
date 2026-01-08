@@ -6,8 +6,19 @@
 
 ## 适用范围
 
-- v1 题库（默认只读）
+- 所有版本题库（可编辑、可删除；删除需确认）
 - 新 quizVersion 的创建与演进
+
+## 题库编辑权限
+
+**Admin 权限**：
+- 可编辑所有版本题库（Quiz/Question/Option）
+- 可删除题库（删除前需确认，避免误操作）
+- 可创建新 quizVersion
+
+**版本保护**：
+- 被 invite/attempt 使用的题库，修改 quizVersion/version 时会有警告
+- 建议：已上线版本避免破坏式修改，通过创建新 quizVersion 演进
 
 ## 非目标
 
@@ -16,7 +27,7 @@
 ## 目录 / TODO
 
 - [ ] 字段规范：stableId / orderNo / status
-- [ ] v1 只读策略（为何只读、如何发布新版本）
+- [ ] 版本策略（已被使用版本避免破坏式修改；如何发布新版本）
 - [ ] 题库更新流程（创建新 quizVersion）
 - [ ] 导入/校验/回滚策略
 
@@ -24,5 +35,5 @@
 
 - 内容资产：`data/seed/quiz_fast_v1.json`、`data/seed/quiz_pro_v1.json`
 - 导入：`prisma/seed-content.ts`
-- v1 只读门禁：`app/api/admin/questions/route.ts`、`app/api/admin/options/route.ts`
+- 版本保护（被 invite/attempt 使用时禁止修改 quizVersion/version）：`app/api/admin/quiz/[id]/route.ts`
 

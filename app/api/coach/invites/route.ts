@@ -30,12 +30,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { customerId, version, quizVersion, expiresAt } = body;
 
-    if (!customerId || !version || !quizVersion) {
-      return fail(ErrorCode.INVALID_INPUT, "缺少必要参数：customerId, version, quizVersion");
+    if (!customerId || !version) {
+      return fail(ErrorCode.INVALID_INPUT, "缺少必要参数：customerId, version");
     }
 
     if (version !== "fast" && version !== "pro") {
       return fail(ErrorCode.VALIDATION_ERROR, "version 必须是 'fast' 或 'pro'");
+    }
+
+    let resolvedQuizVersion = typeof quizVersion === "string" ? quizVersion.trim() : "";
+    if (!resolvedQuizVersion) {
+      try {
+        const row = await prisma.systemSetting.findUnique({
+          where: { key: "invite_default_quiz_version" },
+          select: { value: true },
+        });
+        resolvedQuizVersion = row?.value || "v1";
+      } catch (e) {
+        // Backward-compatible: allow invite creation even if system_settings migration isn't applied yet.
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2021") {
+          resolvedQuizVersion = "v1";
+        } else {
+          throw e;
+        }
+      }
     }
 
     let parsedExpiresAt: Date | null = null;
@@ -53,7 +71,7 @@ export async function POST(request: NextRequest) {
     const quiz = await prisma.quiz.findUnique({
       where: {
         quizVersion_version: {
-          quizVersion,
+          quizVersion: resolvedQuizVersion,
           version,
         },
       },
@@ -120,7 +138,7 @@ export async function POST(request: NextRequest) {
             customerId,
             coachId: session.user.id,
             version,
-            quizVersion,
+            quizVersion: resolvedQuizVersion,
             expiresAt: parsedExpiresAt,
           },
           select: {
@@ -143,7 +161,7 @@ export async function POST(request: NextRequest) {
           {
             customerId,
             version,
-            quizVersion,
+            quizVersion: resolvedQuizVersion,
           }
         );
 

@@ -90,10 +90,13 @@ export default function CoachDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <CoachNav />
       <div className="max-w-7xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">客户列表</h1>
+        <h1 className="text-2xl font-bold mb-1">参与者档案</h1>
+        <p className="text-sm text-gray-600 mb-4">
+          用于管理参与者基本信息、测评状态与陪跑记录。
+        </p>
 
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold mb-3">创建客户</h2>
+          <h2 className="text-lg font-semibold mb-3">新建档案</h2>
           <form onSubmit={createCustomer} className="flex flex-wrap gap-3">
             <input
               value={nickname}
@@ -118,7 +121,7 @@ export default function CoachDashboardPage() {
               disabled={creating || (!nickname.trim() && !phone.trim())}
               className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
             >
-              {creating ? "创建中..." : "创建"}
+              {creating ? "创建中..." : "创建档案"}
             </button>
           </form>
           {error ? <p className="text-sm text-red-600 mt-3">{error}</p> : null}
@@ -132,7 +135,7 @@ export default function CoachDashboardPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left border-b">
-                    <th className="py-2 pr-2">客户</th>
+                    <th className="py-2 pr-2">参与者</th>
                     <th className="py-2 pr-2">手机号</th>
                     <th className="py-2 pr-2">最新测评</th>
                     <th className="py-2 pr-2">操作</th>
@@ -159,7 +162,7 @@ export default function CoachDashboardPage() {
                             href={`/coach/clients/${c.id}`}
                             className="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
                           >
-                            详情
+                            查看
                           </Link>
                           <Link
                             href={`/coach/invites/new?customerId=${encodeURIComponent(
@@ -167,7 +170,7 @@ export default function CoachDashboardPage() {
                             )}`}
                             className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
                           >
-                            创建邀请
+                            新建邀请
                           </Link>
                         </div>
                       </td>
@@ -176,7 +179,7 @@ export default function CoachDashboardPage() {
                 </tbody>
               </table>
               {!customers.length ? (
-                <p className="text-sm text-gray-500 mt-3">暂无客户</p>
+                <p className="text-sm text-gray-500 mt-3">暂无档案</p>
               ) : null}
             </div>
           )}

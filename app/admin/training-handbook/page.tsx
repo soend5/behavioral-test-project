@@ -41,6 +41,8 @@ export default function AdminTrainingHandbookPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [handbook, setHandbook] = useState<TrainingHandbook | null>(null);
+  const [handbookStatusDraft, setHandbookStatusDraft] = useState("active");
+  const [savingHandbook, setSavingHandbook] = useState(false);
 
   const [selectedDayId, setSelectedDayId] = useState<string | null>(null);
   const selectedDay = useMemo(() => {
@@ -80,6 +82,10 @@ export default function AdminTrainingHandbookPage() {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
+
+  useEffect(() => {
+    setHandbookStatusDraft(handbook?.status || "active");
+  }, [handbook]);
 
   useEffect(() => {
     if (!selectedDay) return;
@@ -130,6 +136,112 @@ export default function AdminTrainingHandbookPage() {
     }
   }
 
+  async function saveHandbookStatus() {
+    if (!handbook) return;
+    setSavingHandbook(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/training-handbook", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version, status: handbookStatusDraft }),
+      });
+      const json = (await res.json()) as ApiResponse<{ id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("保存失败");
+    } finally {
+      setSavingHandbook(false);
+    }
+  }
+
+  async function deleteHandbook() {
+    if (!handbook) return;
+    const input = window.prompt(`将删除内训手册（version=${version}）。如确认请输入：确认删除`);
+    if (input !== "确认删除") return;
+
+    setSavingHandbook(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/training-handbook", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version, confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setSavingHandbook(false);
+    }
+  }
+
+  async function deleteDay(day: TrainingDay) {
+    const input = window.prompt(
+      `将删除第 ${day.dayNo} 天（含其所有章节）。如确认请输入：确认删除`
+    );
+    if (input !== "确认删除") return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/training-handbook/days/${day.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ deleted: boolean; id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      if (selectedDayId === day.id) {
+        setSelectedDayId(null);
+      }
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteSection(section: TrainingSection) {
+    const input = window.prompt(
+      `将删除章节「${section.orderNo}. ${section.titleCn}」。如确认请输入：确认删除`
+    );
+    if (input !== "确认删除") return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/training-handbook/sections/${section.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ deleted: boolean; id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function saveSection(sectionId: string, payload: { titleCn: string; bulletsCn: string[] }) {
     setSaving(true);
     setError(null);
@@ -169,8 +281,40 @@ export default function AdminTrainingHandbookPage() {
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Training Handbook</h1>
-          <div className="text-sm text-gray-500">version: {version}</div>
+          <h1 className="text-2xl font-bold">内训手册</h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            <span>版本：{version}</span>
+            {handbook ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <span>状态：</span>
+                <select
+                  value={handbookStatusDraft}
+                  onChange={(e) => setHandbookStatusDraft(e.target.value)}
+                  className="border rounded px-2 py-1 bg-white"
+                  disabled={savingHandbook}
+                >
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
+                  <option value="deleted">deleted</option>
+                </select>
+                <button
+                  onClick={() => void saveHandbookStatus()}
+                  disabled={savingHandbook || !handbook}
+                  className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
+                >
+                  保存状态
+                </button>
+                <button
+                  onClick={() => void deleteHandbook()}
+                  disabled={savingHandbook || !handbook}
+                  className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-50"
+                >
+                  删除手册
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {error ? (
@@ -188,7 +332,7 @@ export default function AdminTrainingHandbookPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg shadow p-4 space-y-2">
-              <div className="font-semibold mb-2">Days</div>
+              <div className="font-semibold mb-2">训练日</div>
               {handbook.days.map((d) => (
                 <button
                   key={d.id}
@@ -197,7 +341,7 @@ export default function AdminTrainingHandbookPage() {
                     selectedDay?.id === d.id ? "border-blue-600 bg-blue-50" : "border-gray-200"
                   }`}
                 >
-                  <div className="text-sm text-gray-500">Day {d.dayNo}</div>
+                  <div className="text-sm text-gray-500">第 {d.dayNo} 天</div>
                   <div className="font-medium">{d.titleCn}</div>
                 </button>
               ))}
@@ -208,10 +352,17 @@ export default function AdminTrainingHandbookPage() {
                 <div className="bg-white rounded-lg shadow p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <div className="text-sm text-gray-500">Day {selectedDay.dayNo}</div>
+                      <div className="text-sm text-gray-500">第 {selectedDay.dayNo} 天</div>
                       <div className="text-xl font-semibold">{selectedDay.titleCn}</div>
                     </div>
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => void deleteDay(selectedDay)}
+                        disabled={saving}
+                        className="px-3 py-2 rounded bg-red-600 text-white text-sm disabled:opacity-50"
+                      >
+                        删除 Day
+                      </button>
                       {editingDay ? (
                         <>
                           <button
@@ -314,7 +465,7 @@ export default function AdminTrainingHandbookPage() {
 
               {selectedDay ? (
                 <div className="bg-white rounded-lg shadow p-6">
-                  <div className="text-lg font-semibold mb-3">Sections</div>
+                  <div className="text-lg font-semibold mb-3">章节内容</div>
                   <div className="space-y-4">
                     {selectedDay.sections.map((s) => {
                       const isEditing = editingSectionId === s.id;
@@ -355,12 +506,21 @@ export default function AdminTrainingHandbookPage() {
                                 </button>
                               </div>
                             ) : (
-                              <button
-                                onClick={() => startEditSection(s)}
-                                className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
-                              >
-                                编辑
-                              </button>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => startEditSection(s)}
+                                  className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-sm"
+                                >
+                                  编辑
+                                </button>
+                                <button
+                                  onClick={() => void deleteSection(s)}
+                                  disabled={saving}
+                                  className="px-3 py-1 rounded bg-red-600 text-white text-sm disabled:opacity-50"
+                                >
+                                  删除
+                                </button>
+                              </div>
                             )}
                           </div>
 

@@ -30,6 +30,7 @@ export default function AdminArchetypesPage() {
   const [items, setItems] = useState<ArchetypeItem[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, any>>({});
+  const [deleting, setDeleting] = useState(false);
 
   const selected = useMemo(
     () => items.find((i) => i.id === editingId) || null,
@@ -115,13 +116,41 @@ export default function AdminArchetypesPage() {
     }
   }
 
+  async function deleteArchetype() {
+    if (!editingId || !selected) return;
+    const input = window.prompt(`将删除画像「${selected.titleCn}」。如确认请输入：确认删除`);
+    if (input !== "确认删除") return;
+
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/archetypes/${editingId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      setEditingId(null);
+      setDraft({});
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Archetypes</h1>
-          <div className="text-sm text-gray-500">version: {version}</div>
+          <h1 className="text-2xl font-bold">画像文案</h1>
+          <div className="text-sm text-gray-500">版本：{version}</div>
         </div>
 
         {error ? (
@@ -151,7 +180,7 @@ export default function AdminArchetypesPage() {
                     {item.oneLinerCn}
                   </div>
                   <div className="text-xs text-gray-400 mt-2">
-                    status: {item.status}
+                    状态：{item.status}
                   </div>
                 </button>
               ))}
@@ -170,6 +199,13 @@ export default function AdminArchetypesPage() {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => void deleteArchetype()}
+                        disabled={deleting}
+                        className="px-3 py-2 rounded bg-red-600 text-white text-sm disabled:opacity-50"
+                      >
+                        删除
+                      </button>
+                      <button
                         onClick={() => {
                           setEditingId(null);
                           setDraft({});
@@ -180,6 +216,7 @@ export default function AdminArchetypesPage() {
                       </button>
                       <button
                         onClick={() => void save()}
+                        disabled={deleting}
                         className="px-3 py-2 rounded bg-blue-600 text-white text-sm"
                       >
                         保存
@@ -210,7 +247,7 @@ export default function AdminArchetypesPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <div className="text-sm font-medium mb-1">traits（每行一条）</div>
+                        <div className="text-sm font-medium mb-1">特征（每行一条）</div>
                         <textarea
                           value={draft.traitsCn || ""}
                           onChange={(e) =>
@@ -220,7 +257,7 @@ export default function AdminArchetypesPage() {
                         />
                       </div>
                       <div>
-                        <div className="text-sm font-medium mb-1">risks（每行一条）</div>
+                        <div className="text-sm font-medium mb-1">风险（每行一条）</div>
                         <textarea
                           value={draft.risksCn || ""}
                           onChange={(e) =>
@@ -232,7 +269,7 @@ export default function AdminArchetypesPage() {
                     </div>
                     <div>
                       <div className="text-sm font-medium mb-1">
-                        coach_guidance（每行一条）
+                        助教建议（每行一条）
                       </div>
                       <textarea
                         value={draft.coachGuidanceCn || ""}
@@ -256,6 +293,7 @@ export default function AdminArchetypesPage() {
                       >
                         <option value="active">active</option>
                         <option value="inactive">inactive</option>
+                        <option value="deleted">deleted</option>
                       </select>
                     </div>
                   </div>
@@ -272,4 +310,3 @@ export default function AdminArchetypesPage() {
     </div>
   );
 }
-

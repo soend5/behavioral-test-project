@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
 
 type QuizQuestion = {
   id: string;
@@ -218,6 +219,8 @@ export default function QuizPage({ params }: { params: { token: string } }) {
             {submitting ? "提交中..." : "提交测评"}
           </button>
         </div>
+
+        <div className="mt-6 text-xs text-gray-500">{COMPLIANCE_NOTICE_CN}</div>
       </div>
     </div>
   );

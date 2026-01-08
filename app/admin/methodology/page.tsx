@@ -27,6 +27,8 @@ export default function AdminMethodologyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [doc, setDoc] = useState<MethodologyDoc | null>(null);
+  const [docStatusDraft, setDocStatusDraft] = useState("active");
+  const [savingDoc, setSavingDoc] = useState(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = useMemo(() => {
@@ -67,6 +69,10 @@ export default function AdminMethodologyPage() {
   }, [version]);
 
   useEffect(() => {
+    setDocStatusDraft(doc?.status || "active");
+  }, [doc]);
+
+  useEffect(() => {
     if (!selected) return;
     setDraft({
       titleCn: selected.titleCn,
@@ -102,13 +108,122 @@ export default function AdminMethodologyPage() {
     }
   }
 
+  async function saveDocStatus() {
+    if (!doc) return;
+    setSavingDoc(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/methodology", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version, status: docStatusDraft }),
+      });
+      const json = (await res.json()) as ApiResponse<{ id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("保存失败");
+    } finally {
+      setSavingDoc(false);
+    }
+  }
+
+  async function deleteDoc() {
+    if (!doc) return;
+    const input = window.prompt(`将删除方法论（version=${version}）。如确认请输入：确认删除`);
+    if (input !== "确认删除") return;
+
+    setSavingDoc(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/methodology", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ version, confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setSavingDoc(false);
+    }
+  }
+
+  async function deleteSection(section: MethodologySection) {
+    const input = window.prompt(`将删除章节「${section.slug}」。如确认请输入：确认删除`);
+    if (input !== "确认删除") return;
+
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/methodology/sections/${section.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmText: input }),
+      });
+      const json = (await res.json()) as ApiResponse<{ deleted: boolean; id: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      if (selectedId === section.id) {
+        setSelectedId(null);
+      }
+      await load();
+    } catch {
+      setError("删除失败");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Methodology</h1>
-          <div className="text-sm text-gray-500">version: {version}</div>
+          <h1 className="text-2xl font-bold">方法论</h1>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500">
+            <span>版本：{version}</span>
+            {doc ? (
+              <>
+                <span className="text-gray-300">|</span>
+                <span>状态：</span>
+                <select
+                  value={docStatusDraft}
+                  onChange={(e) => setDocStatusDraft(e.target.value)}
+                  className="border rounded px-2 py-1 bg-white"
+                  disabled={savingDoc}
+                >
+                  <option value="active">active</option>
+                  <option value="inactive">inactive</option>
+                  <option value="deleted">deleted</option>
+                </select>
+                <button
+                  onClick={() => void saveDocStatus()}
+                  disabled={savingDoc || !doc}
+                  className="px-3 py-1 rounded bg-blue-600 text-white disabled:opacity-50"
+                >
+                  保存状态
+                </button>
+                <button
+                  onClick={() => void deleteDoc()}
+                  disabled={savingDoc || !doc}
+                  className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-50"
+                >
+                  删除文档
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {error ? (
@@ -126,19 +241,33 @@ export default function AdminMethodologyPage() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg shadow p-4 space-y-2">
-              <div className="font-semibold mb-2">Sections</div>
-              {doc.sections.map((s) => (
-                <button
-                  key={s.id}
-                  onClick={() => setSelectedId(s.id)}
-                  className={`w-full text-left border rounded p-3 ${
-                    selected?.id === s.id ? "border-blue-600 bg-blue-50" : "border-gray-200"
-                  }`}
-                >
-                  <div className="text-xs text-gray-500">{s.slug}</div>
-                  <div className="font-medium">{s.titleCn}</div>
-                </button>
-              ))}
+              <div className="font-semibold mb-2">章节</div>
+              {doc.sections.map((s) => {
+                const active = selected?.id === s.id;
+                return (
+                  <div
+                    key={s.id}
+                    className={`flex items-center gap-2 border rounded p-3 ${
+                      active ? "border-blue-600 bg-blue-50" : "border-gray-200"
+                    }`}
+                  >
+                    <button
+                      onClick={() => setSelectedId(s.id)}
+                      className="flex-1 text-left"
+                    >
+                      <div className="text-xs text-gray-500">{s.slug}</div>
+                      <div className="font-medium">{s.titleCn}</div>
+                    </button>
+                    <button
+                      onClick={() => void deleteSection(s)}
+                      disabled={saving}
+                      className="px-2 py-1 rounded bg-red-600 text-white text-xs disabled:opacity-50"
+                    >
+                      删除
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             <div className="lg:col-span-2">
@@ -149,13 +278,22 @@ export default function AdminMethodologyPage() {
                       <div className="text-sm text-gray-500">{selected.slug}</div>
                       <div className="text-xl font-semibold">{selected.titleCn}</div>
                     </div>
-                    <button
-                      onClick={() => void save()}
-                      disabled={saving}
-                      className="px-3 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
-                    >
-                      保存
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => void deleteSection(selected)}
+                        disabled={saving}
+                        className="px-3 py-2 rounded bg-red-600 text-white text-sm disabled:opacity-50"
+                      >
+                        删除章节
+                      </button>
+                      <button
+                        onClick={() => void save()}
+                        disabled={saving}
+                        className="px-3 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
+                      >
+                        保存
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-4">
@@ -170,7 +308,7 @@ export default function AdminMethodologyPage() {
                       />
                     </div>
                     <div>
-                      <div className="text-sm font-medium mb-1">Markdown</div>
+                      <div className="text-sm font-medium mb-1">内容（Markdown）</div>
                       <textarea
                         value={draft.contentMarkdown || ""}
                         onChange={(e) =>

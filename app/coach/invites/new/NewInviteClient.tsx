@@ -10,7 +10,7 @@ type Customer = {
   name: string | null;
   nickname: string | null;
   phone: string | null;
-  latestAttempt: any;
+  latestAttempt: unknown;
 };
 
 type CreatedInvite = {
@@ -39,7 +39,8 @@ export default function NewInviteClient() {
 
   const [customerId, setCustomerId] = useState(customerIdFromQuery);
   const [version, setVersion] = useState<"fast" | "pro">("fast");
-  const [quizVersion, setQuizVersion] = useState("v1");
+  // quizVersion 不再由用户输入，系统自动使用默认值
+  const [defaultQuizVersion, setDefaultQuizVersion] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState("");
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState<CreatedInvite | null>(null);
@@ -68,7 +69,7 @@ export default function NewInviteClient() {
           setCustomerId(json.data.customers[0].id);
         }
       } catch {
-        setError("加载客户失败");
+        setError("加载档案失败");
         setCustomers([]);
       } finally {
         setLoadingCustomers(false);
@@ -76,6 +77,22 @@ export default function NewInviteClient() {
     }
     void loadCustomers();
   }, [customerIdFromQuery]);
+
+  useEffect(() => {
+    async function loadDefaults() {
+      try {
+        const res = await fetch("/api/coach/settings", { cache: "no-store" });
+        const json = (await res.json()) as ApiResponse<{ inviteDefaultQuizVersion: string }>;
+        if (!json.ok) return;
+        const v = String(json.data.inviteDefaultQuizVersion || "").trim();
+        if (!v) return;
+        setDefaultQuizVersion(v);
+      } catch {
+        // ignore - API 会使用兜底默认值
+      }
+    }
+    void loadDefaults();
+  }, []);
 
   async function createInvite(e: FormEvent) {
     e.preventDefault();
@@ -92,7 +109,7 @@ export default function NewInviteClient() {
         body: JSON.stringify({
           customerId,
           version,
-          quizVersion: quizVersion.trim(),
+          // 不传 quizVersion，让 API 自动使用系统默认值
           ...(expiresAt ? { expiresAt: new Date(expiresAt).toISOString() } : {}),
         }),
       });
@@ -116,7 +133,10 @@ export default function NewInviteClient() {
     <div className="min-h-screen bg-gray-50">
       <CoachNav />
       <div className="max-w-3xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-4">创建邀请链接</h1>
+        <h1 className="text-2xl font-bold mb-1">新建邀请</h1>
+        <p className="text-sm text-gray-600 mb-4">
+          生成测评邀请链接并管理有效期；token 仅展示一次，请及时保存。
+        </p>
 
         {error ? (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded p-3 text-sm mb-4">
@@ -128,7 +148,7 @@ export default function NewInviteClient() {
           <form onSubmit={createInvite} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                客户
+                参与者
               </label>
               <select
                 value={customerId}
@@ -145,11 +165,11 @@ export default function NewInviteClient() {
               </select>
               {!customers.length && !loadingCustomers ? (
                 <p className="text-sm text-gray-500 mt-2">
-                  暂无客户，请先到{" "}
+                  暂无档案，请先到{" "}
                   <Link href="/coach/dashboard" className="underline">
-                    客户列表
+                    参与者档案
                   </Link>{" "}
-                  创建客户。
+                  创建档案。
                 </p>
               ) : null}
             </div>
@@ -157,27 +177,27 @@ export default function NewInviteClient() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  测评版本
+                  测评类型
                 </label>
                 <select
                   value={version}
                   onChange={(e) => setVersion(e.target.value as "fast" | "pro")}
                   className="w-full border rounded px-3 py-2"
                 >
-                  <option value="fast">fast</option>
-                  <option value="pro">pro</option>
+                  <option value="fast">快速测评（fast）</option>
+                  <option value="pro">专业测评（pro）</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  quizVersion
+                  题库版本
                 </label>
-                <input
-                  value={quizVersion}
-                  onChange={(e) => setQuizVersion(e.target.value)}
-                  className="w-full border rounded px-3 py-2"
-                  placeholder="例如 v1"
-                />
+                <div className="border rounded px-3 py-2 bg-gray-50 text-gray-700">
+                  {defaultQuizVersion || "v1"}（系统默认）
+                </div>
+                <div className="mt-1 text-xs text-gray-500">
+                  题库版本由管理后台统一配置，无需手动选择
+                </div>
               </div>
             </div>
 
@@ -192,21 +212,21 @@ export default function NewInviteClient() {
                 className="w-full border rounded px-3 py-2"
               />
               <p className="text-xs text-gray-500 mt-1">
-                不设置则永不过期（由助教手动失效或提交后完成）。
+                不设置则永不过期（由助教手动设为失效，或参与者提交后完成）。
               </p>
             </div>
 
             <button
               type="submit"
-              disabled={creating || !customerId || !quizVersion.trim()}
+              disabled={creating || !customerId}
               className="w-full bg-blue-600 text-white rounded px-4 py-2 disabled:opacity-50"
             >
-              {creating ? "创建中..." : "创建邀请"}
+              {creating ? "生成中..." : "生成邀请链接"}
             </button>
 
             {selectedCustomer ? (
               <div className="text-xs text-gray-500">
-                目标客户：
+                目标参与者：
                 {selectedCustomer.nickname || selectedCustomer.name || selectedCustomer.id}
               </div>
             ) : null}
@@ -216,23 +236,35 @@ export default function NewInviteClient() {
         {created ? (
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-lg font-semibold mb-3">
-              邀请已创建（明文 token 仅展示一次）
+              邀请已创建（token 仅展示一次，请及时保存）
             </h2>
             <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-gray-500">测评类型</div>
+                  <div className="font-medium">
+                    {created.version === "fast" ? "快速测评（fast）" : "专业测评（pro）"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-gray-500">题库版本</div>
+                  <div className="font-medium">{created.quizVersion}（系统默认）</div>
+                </div>
+              </div>
               <div>
-                <div className="text-gray-500">邀请链接</div>
+                <div className="text-gray-500">邀请链接（发给参与者）</div>
                 <div className="break-all font-mono text-xs bg-gray-50 border rounded p-2">
                   {created.url}
                 </div>
               </div>
               <div>
-                <div className="text-gray-500">Token</div>
+                <div className="text-gray-500">Token（仅内部/仅展示一次）</div>
                 <div className="break-all font-mono text-xs bg-gray-50 border rounded p-2">
                   {created.token}
                 </div>
               </div>
               <div>
-                <div className="text-gray-500">TokenHash</div>
+                <div className="text-gray-500">Token Hash（仅内部校验）</div>
                 <div className="break-all font-mono text-xs bg-gray-50 border rounded p-2">
                   {created.tokenHash}
                 </div>
@@ -259,4 +291,3 @@ export default function NewInviteClient() {
     </div>
   );
 }
-

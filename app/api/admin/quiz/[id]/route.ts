@@ -15,6 +15,11 @@ import { requireAdmin } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { z } from "zod";
+
+const DeleteSchema = z.object({
+  confirmText: z.literal("确认删除"),
+});
 
 export async function PATCH(
   request: NextRequest,
@@ -106,6 +111,86 @@ export async function PATCH(
       return fail(error.message, "题库不存在");
     }
     console.error("Update quiz error:", error);
+    return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await requireAdmin();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
+
+    const parsed = DeleteSchema.safeParse(body);
+    if (!parsed.success) {
+      return fail(ErrorCode.VALIDATION_ERROR, "请手动输入“确认删除”以继续");
+    }
+
+    const quiz = await prisma.quiz.findUnique({ where: { id: params.id } });
+    if (!quiz) {
+      return fail(ErrorCode.NOT_FOUND, "题库不存在");
+    }
+
+    const activeInviteCount = await prisma.invite.count({
+      where: {
+        quizVersion: quiz.quizVersion,
+        version: quiz.version,
+        status: { in: ["active", "entered"] },
+      },
+    });
+
+    const inProgressAttemptCount = await prisma.attempt.count({
+      where: {
+        quizVersion: quiz.quizVersion,
+        version: quiz.version,
+        submittedAt: null,
+      },
+    });
+
+    if (activeInviteCount > 0 || inProgressAttemptCount > 0) {
+      return fail(
+        ErrorCode.VALIDATION_ERROR,
+        "该题库仍存在未完成的邀请/测评进行中，无法删除。请先将相关邀请设为失效或等待完成。"
+      );
+    }
+
+    const updated = await prisma.quiz.update({
+      where: { id: quiz.id },
+      data: { status: "deleted" },
+    });
+
+    await writeAudit(prisma, session.user.id, "admin.delete_quiz", "quiz", quiz.id, {
+      quizVersion: quiz.quizVersion,
+      version: quiz.version,
+      previousStatus: quiz.status,
+      newStatus: updated.status,
+    });
+
+    return ok({
+      quiz: {
+        id: updated.id,
+        version: updated.version,
+        quizVersion: updated.quizVersion,
+        title: updated.title,
+        status: updated.status,
+        updatedAt: updated.createdAt,
+      },
+    });
+  } catch (error: any) {
+    if (error.message === ErrorCode.UNAUTHORIZED || error.message === ErrorCode.FORBIDDEN) {
+      return fail(error.message, "未登录或权限不足");
+    }
+    if (error.message === ErrorCode.NOT_FOUND) {
+      return fail(error.message, "题库不存在");
+    }
+    console.error("Delete quiz error:", error);
     return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
   }
 }

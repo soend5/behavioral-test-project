@@ -56,34 +56,39 @@ export default function AdminDashboardPage() {
     statusText?: string;
   }> = [
     {
-      title: "Quizzes",
+      title: "系统设置",
+      href: "/admin/settings",
+      desc: "全局默认值与运营参数",
+    },
+    {
+      title: "题库",
       href: "/admin/quiz",
-      desc: "题库查看（v1 默认只读）",
+      desc: "题库管理（编辑/停用/删除）",
       statusText: status
-        ? `fast: ${status.quizzes.fast.questionCount}/9, pro: ${status.quizzes.pro.questionCount}/18`
+        ? `fast：${status.quizzes.fast.questionCount}/9，pro：${status.quizzes.pro.questionCount}/18`
         : undefined,
     },
     {
-      title: "Archetypes",
+      title: "画像文案",
       href: "/admin/archetypes",
       desc: "6 画像文案（可编辑）",
       statusText: status ? `${status.archetypes.count}/6` : undefined,
     },
     {
-      title: "Training Handbook",
+      title: "内训手册",
       href: "/admin/training-handbook",
       desc: "7 天内训（可编辑）",
       statusText: status ? `${status.trainingHandbook.dayCount}/7` : undefined,
     },
     {
-      title: "Methodology",
+      title: "方法论",
       href: "/admin/methodology",
       desc: "SOP 精修方法论（可编辑）",
-      statusText: status ? `${status.methodology.sectionCount} sections` : undefined,
+      statusText: status ? `${status.methodology.sectionCount} 章节` : undefined,
     },
-    { title: "SOP Config", href: "/admin/sop", desc: "SOP 配置 CRUD" },
-    { title: "Coaches", href: "/admin/coaches", desc: "助教账号管理" },
-    { title: "Audit", href: "/admin/audit", desc: "审计日志" },
+    { title: "SOP 配置", href: "/admin/sop", desc: "SOP 配置管理" },
+    { title: "助教账号", href: "/admin/coaches", desc: "助教账号管理" },
+    { title: "审计日志", href: "/admin/audit", desc: "操作审计与追踪" },
   ];
 
   return (
@@ -91,19 +96,24 @@ export default function AdminDashboardPage() {
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <div>
+            <h1 className="text-2xl font-bold">总览</h1>
+            <div className="text-sm text-gray-600 mt-1">
+              用于确认 v1 内容资产导入状态与关键入口。
+            </div>
+          </div>
           <div className="text-sm text-gray-500">
-            Seed status:{" "}
+            内容导入：{" "}
             {loading
-              ? "loading..."
+              ? "加载中..."
               : status &&
                   status.quizzes.fast.imported &&
                   status.quizzes.pro.imported &&
                   status.archetypes.imported &&
                   status.trainingHandbook.imported &&
                   status.methodology.imported
-                ? "imported"
-                : "not imported"}
+                ? "已导入"
+                : "未完成"}
           </div>
         </div>
 
@@ -132,4 +142,3 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
-

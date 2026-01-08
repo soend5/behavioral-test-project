@@ -24,6 +24,10 @@ const PatchSchema = z.object({
   status: z.string().min(1).optional(),
 });
 
+const DeleteSchema = z.object({
+  confirmText: z.literal("确认删除"),
+});
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -107,6 +111,53 @@ export async function PATCH(
       return fail(error.message, "未找到记录");
     }
     console.error("Patch archetype error:", error);
+    return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await requireAdmin();
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return fail(ErrorCode.BAD_REQUEST, "请求体必须为 JSON");
+    }
+
+    const parsed = DeleteSchema.safeParse(body);
+    if (!parsed.success) {
+      return fail(ErrorCode.VALIDATION_ERROR, "请手动输入“确认删除”以继续");
+    }
+
+    const existing = await prisma.archetype.findUnique({ where: { id: params.id } });
+    if (!existing) return fail(ErrorCode.NOT_FOUND, "未找到记录");
+
+    const updated = await prisma.archetype.update({
+      where: { id: params.id },
+      data: { status: "deleted" },
+    });
+
+    await writeAudit(prisma, session.user.id, "admin.delete_archetype", "archetype", updated.id, {
+      key: updated.key,
+      version: updated.version,
+    });
+
+    return ok({
+      id: updated.id,
+      key: updated.key,
+      version: updated.version,
+      status: updated.status,
+      updatedAt: updated.updatedAt,
+    });
+  } catch (error: any) {
+    if (error.message === ErrorCode.UNAUTHORIZED || error.message === ErrorCode.FORBIDDEN) {
+      return fail(error.message, "未登录或权限不足");
+    }
+    console.error("Delete archetype error:", error);
     return fail(ErrorCode.INTERNAL_ERROR, "服务器内部错误");
   }
 }

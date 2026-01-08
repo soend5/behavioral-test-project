@@ -66,9 +66,10 @@
 **路由**：
 - `/admin/login`：登录页（NextAuth）
 - `/admin`：Dashboard（内容资产状态概览）
-- `/admin/quiz`：题库查看（v1 默认只读）
-- `/admin/questions`：题目管理
-- `/admin/options`：选项管理
+- `/admin/settings`：系统设置（助教创建邀请默认 quizVersion）
+- `/admin/quiz`：题库管理（可编辑/可删除；删除需确认）
+- `/admin/questions`：题目管理（可编辑/可删除）
+- `/admin/options`：选项管理（可编辑/可删除）
 - `/admin/archetypes`：画像文案（可编辑）
 - `/admin/training-handbook`：7 天内训（可编辑）
 - `/admin/methodology`：SOP 精修方法论（可编辑）
