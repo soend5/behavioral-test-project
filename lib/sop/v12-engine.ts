@@ -70,6 +70,11 @@ function generateTalkTracks(
     tracks.push("咱们把下一步动作拆细");
     tracks.push("确保可执行可跟进");
     tracks.push("然后按节奏往前推");
+  } else {
+    // 未知阶段兜底：确保返回固定数量的可读话术，避免产生 sparse array
+    tracks.push("咱们先对齐下当前目标和边界");
+    tracks.push("我会先理解你的现状和顾虑");
+    tracks.push("然后一起确认下一步怎么推");
   }
 
   // 根据 highlight 标签微调

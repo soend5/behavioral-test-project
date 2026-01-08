@@ -21,6 +21,7 @@ import { matchSOP, getDefaultRealtimePanel } from "@/lib/sop-matcher";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
 import { safeJsonParse, safeJsonParseWithSchema } from "@/lib/json";
+import { getCoachNoteText, parseCoachMetadata, serializeCoachMetadata } from "@/lib/coach-stage";
 import { z } from "zod";
 
 const StringArraySchema = z.array(z.string());
@@ -280,7 +281,7 @@ export async function GET(
         phone: customer.phone,
         wechat: customer.wechat,
         qq: customer.qq,
-        note: customer.note,
+        note: getCoachNoteText(customer.note),
         coachId: customer.coachId,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
@@ -328,7 +329,37 @@ export async function PATCH(
     // 使用门禁函数：验证 ownership
     await requireCoachOwnsCustomer(prisma, session.user.id, customerId);
     const body = await request.json();
-    const { name, nickname, phone, wechat, qq, note } = body;
+    const { name, nickname, phone, wechat, qq } = body;
+
+    const hasNote = Object.prototype.hasOwnProperty.call(body, "note");
+    const noteInput = hasNote ? (body.note as string | null) : undefined;
+
+    let noteToWrite: string | null | undefined = undefined;
+    if (hasNote) {
+      const existing = await prisma.customer.findUnique({
+        where: { id: customerId },
+        select: { note: true },
+      });
+
+      if (!existing) {
+        return fail(ErrorCode.CUSTOMER_NOT_FOUND, "客户不存在");
+      }
+
+      const existingMeta = parseCoachMetadata(existing.note);
+      const hasCoachMetadata =
+        typeof existingMeta.coach_stage === "string" ||
+        typeof existingMeta.coach_stage_updated_at === "string";
+
+      const nextNoteText =
+        typeof noteInput === "string" ? noteInput : noteInput === null ? null : null;
+
+      if (hasCoachMetadata) {
+        existingMeta.note_text = nextNoteText ?? undefined;
+        noteToWrite = serializeCoachMetadata(existingMeta);
+      } else {
+        noteToWrite = nextNoteText;
+      }
+    }
 
     // 更新客户
     const customer = await prisma.customer.update({
@@ -339,7 +370,7 @@ export async function PATCH(
         phone,
         wechat,
         qq,
-        note,
+        ...(hasNote ? { note: noteToWrite ?? null } : {}),
       },
     });
 
@@ -360,6 +391,7 @@ export async function PATCH(
         id: customer.id,
         name: customer.name,
         nickname: customer.nickname,
+        note: getCoachNoteText(customer.note),
         updatedAt: customer.updatedAt,
       },
     });
