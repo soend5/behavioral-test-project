@@ -7,6 +7,7 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedContentAssets } from "./seed-content";
+import { seedSopDefaults } from "./seed-sop";
 
 const prisma = new PrismaClient();
 
@@ -155,6 +156,7 @@ async function main() {
 
   // 5. 填充内容资产（题库/画像/内训/方法论）——幂等导入
   await seedContentAssets(prisma);
+  await seedSopDefaults(prisma);
 
   console.log("✅ 种子数据填充完成");
 }

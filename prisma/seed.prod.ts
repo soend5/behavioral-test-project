@@ -10,6 +10,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { seedContentAssets } from "./seed-content";
+import { seedSopDefaults } from "./seed-sop";
 
 function envTruthy(name: string): boolean {
   const value = process.env[name];
@@ -190,6 +191,9 @@ async function main() {
 
       // 4) 填充内容资产（题库/画像/内训/方法论）——幂等导入
       await seedContentAssets(tx);
+
+      // 5) 初始化 SOP 默认配置（幂等导入；不覆盖已有配置）
+      await seedSopDefaults(tx);
 
       console.log("? 生产环境种子数据填充完成");
       },

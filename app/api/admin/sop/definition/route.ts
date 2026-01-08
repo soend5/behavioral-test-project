@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    if (process.env.DEBUG_SOP_ADMIN === "1") {
+      console.log(`[admin:sop:definition] count=${sops.length}`);
+    }
+
     return ok({
       sops: sops.map((sop) => ({
         sopId: sop.sopId,

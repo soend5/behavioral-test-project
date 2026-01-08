@@ -132,6 +132,7 @@ async function checkSeedStatus(prisma: PrismaClient): Promise<CheckResult> {
     trainingDayCount,
     trainingSectionCount,
     methodologySectionCount,
+    sopDefinitionCount,
   ] = await Promise.all([
     prisma.question.count({ where: { quizId: fastQuiz.id } }),
     prisma.option.count({ where: { question: { quizId: fastQuiz.id } } }),
@@ -141,6 +142,7 @@ async function checkSeedStatus(prisma: PrismaClient): Promise<CheckResult> {
     prisma.trainingDay.count({ where: { handbook: { version } } }),
     prisma.trainingSection.count({ where: { day: { handbook: { version } } } }),
     prisma.methodologySection.count({ where: { doc: { version } } }),
+    prisma.sopDefinition.count(),
   ]);
 
   const problems: string[] = [];
@@ -160,6 +162,9 @@ async function checkSeedStatus(prisma: PrismaClient): Promise<CheckResult> {
   }
   if (methodologySectionCount <= 0) {
     problems.push(`methodology v1 expected >0 sections, got ${methodologySectionCount}`);
+  }
+  if (sopDefinitionCount <= 0) {
+    problems.push(`sop_definition expected >0, got ${sopDefinitionCount}`);
   }
 
   if (problems.length > 0) {
