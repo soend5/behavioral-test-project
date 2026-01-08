@@ -61,6 +61,23 @@ type ApiOk<T> = { ok: true; data: T };
 type ApiFail = { ok: false; error: { code: string; message: string } };
 type ApiResponse<T> = ApiOk<T> | ApiFail;
 
+function buildReadableSuggestion(panel: CustomerDetail["realtimePanel"]): string {
+  if (!panel) return "";
+  const coreGoal = panel.coreGoal?.trim() || "";
+  const strategy = panel.strategyList?.[0]?.trim() || "";
+
+  if (coreGoal && strategy) {
+    return `建议（可照读）：我们先把目标对齐到「${coreGoal}」，然后用「${strategy}」推进下一步。`;
+  }
+  if (coreGoal) {
+    return `建议（可照读）：我们先把目标对齐到「${coreGoal}」，再一起确认下一步动作。`;
+  }
+  if (strategy) {
+    return `建议（可照读）：我们先从「${strategy}」开始，边推进边收敛下一步。`;
+  }
+  return "建议（可照读）：我们先对齐当前目标与边界，再一起确认下一步动作。";
+}
+
 export default function ClientDetailPage({ params }: { params: { id: string } }) {
   const customerId = params.id;
 
@@ -338,10 +355,28 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 </div>
                 {data.realtimePanel ? (
                   <div className="space-y-3 text-sm">
-                    <div>
-                      <span className="text-gray-500">阶段：</span>
-                      <span className="font-semibold">{data.realtimePanel.stage}</span>
-                    </div>
+                    {(() => {
+                      const stageMeta = getStageDisplay(data.realtimePanel.stage);
+                      const readable = buildReadableSuggestion(data.realtimePanel);
+                      return (
+                        <>
+                          <div className="border rounded p-3 bg-gray-50">
+                            <div className="text-gray-500 text-xs mb-1">陪跑阶段</div>
+                            <div className="font-semibold">
+                              {stageMeta.labelCn.replace("陪跑阶段：", "")}
+                            </div>
+                            <div className="text-xs text-gray-600 mt-1">
+                              {stageMeta.explanationCn}
+                            </div>
+                          </div>
+
+                          <div className="border rounded p-3 bg-blue-50 border-blue-200">
+                            <div className="text-blue-700 text-xs mb-1">可照读的一句话建议</div>
+                            <div className="font-medium text-blue-900">{readable}</div>
+                          </div>
+                        </>
+                      );
+                    })()}
                     {data.realtimePanel.stateSummary ? (
                       <div>
                         <div className="text-gray-500">状态判断</div>

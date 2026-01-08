@@ -205,7 +205,7 @@ export function pickHighlightBehaviorTags(
   // 兜底：如果没有行为标签，返回 image 作为“行为倾向”提示
   const fallback = tags
     .map(getDisplayTag)
-    .find((t): t is DisplayTag => Boolean(t) && t.kind === "archetype");
+    .find((t): t is DisplayTag => t !== null && t.kind === "archetype");
   return fallback ? [fallback] : [];
 }
 
@@ -225,4 +225,3 @@ export function getStageDisplay(stage: string | null | undefined): {
   }
   return { stageId: stage || "-", labelCn: "陪跑阶段：未判定", explanationCn: "暂未形成阶段信号" };
 }
-
