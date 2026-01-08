@@ -138,7 +138,7 @@ ALLOW_PROD_SEED=true DIRECT_URL="postgresql://..." SEED_ADMIN_PASSWORD="..." npm
 - [ ] 验证数据库连接
 - [ ] 检查日志无错误
 
-详细部署指南请查看 [docs/DEPLOY_PROD.md](./docs/DEPLOY_PROD.md)
+详细部署指南请查看 [docs/08_Deployment_and_Ops/DEPLOY_PROD.md](./docs/08_Deployment_and_Ops/DEPLOY_PROD.md)
 
 ---
 

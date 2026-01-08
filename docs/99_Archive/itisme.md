@@ -11,7 +11,7 @@
 
 ## 1. 产品边界（防跑偏/合规口径）
 
-基于 `docs/交易行为结构测评系统.md` 的“冻结共识版”：
+基于 `docs/01_Project/交易行为结构测评系统.md` 的“冻结共识版”：
 
 - **对外营销层（/）**：只讲价值，不提供测评入口、不登录、不留数据。
 - **测评体验层（/t/[token]）**：只允许助教邀请的客户进入；客户无账号无密码；一人一链；只能看自己的题目与结果。
@@ -33,7 +33,7 @@
 - 测评页：`/t/[token]/quiz`（start attempt → 拉题 → 提交答案 → submit → 跳转结果）
 - 结果页：`/t/[token]/result`（读取已提交 attempt 的 tags + resultSummary）
 
-接口（详见 `docs/API_SPEC.md`、`docs/CLIENT_API_ACCEPTANCE.md`）：
+接口（详见 `docs/04_API_and_Security/API_SPEC.md`、`docs/07_Test_and_Release/CLIENT_API_ACCEPTANCE.md`）：
 - `GET /api/public/invite/resolve`
 - `POST /api/attempt/start`（幂等）
 - `GET /api/quiz`（按 invite 的 `quizVersion + version` 锁定题库）
@@ -66,7 +66,7 @@
 - 内容资产：`/admin/archetypes`、`/admin/training-handbook`、`/admin/methodology`
 
 关键规则：
-- **题库版本保护**：v1 内容资产默认只读（避免破坏已使用版本；通过 API 层门禁硬拒绝，详见 `docs/ADMIN_V1_IMPLEMENTATION.md`、`scripts/smoke-prod-gate.ts`）。
+- **题库版本保护**：v1 内容资产默认只读（避免破坏已使用版本；通过 API 层门禁硬拒绝，详见 `docs/04_API_and_Security/ADMIN_V1_IMPLEMENTATION.md`、`scripts/smoke-prod-gate.ts`）。
 
 ---
 
@@ -174,8 +174,8 @@
 
 - `vercel.json`：build 只跑 `npm run db:generate && npm run build`
 - `.github/workflows/db-deploy.yml`：main 分支触发 DB Deploy（含 concurrency）
-- `docs/GITHUB_ENV_PRODUCTION.md`：要求使用 GitHub Environments（production）+ required reviewers + environment secrets
-- `docs/DEPLOY_PROD.md`：生产部署说明（含 env、回滚、安全检查清单）
+- `docs/08_Deployment_and_Ops/GITHUB_ENV_PRODUCTION.md`：要求使用 GitHub Environments（production）+ required reviewers + environment secrets
+- `docs/08_Deployment_and_Ops/DEPLOY_PROD.md`：生产部署说明（含 env、回滚、安全检查清单）
 - `npm run smoke:prod-gate`：生产只读验收（migrations+seed+v1 只读门禁检查）
 
 ---
@@ -190,7 +190,7 @@
 - Client 测评闭环（start/answer/submit/result）
 - SOP 配置 CRUD + SOP 匹配引擎 + realtime_panel 输出
 - audit_log 最小实现
-- 生产部署工程化（DB Deploy 解耦 + 门禁 + smoke gate）：`docs/260107.md`
+- 生产部署工程化（DB Deploy 解耦 + 门禁 + smoke gate）：`docs/08_Deployment_and_Ops/260107.md`
 
 项目当前更像“可灰度验证的 MVP 工具”，下一阶段主要是 **内容完善**（题库/文案/SOP）、**合规与运营体系化**、以及 **体验优化**。
 
@@ -199,25 +199,25 @@
 ## 6. 已有文档索引（你可以直接复用/引用）
 
 产品/共识：
-- `docs/交易行为结构测评系统.md`：产品结构总览（冻结共识版）
+- `docs/01_Project/交易行为结构测评系统.md`：产品结构总览（冻结共识版）
 
 接口/权限/实现总结：
-- `docs/API_SPEC.md`：API 规范文档（含错误码、返回结构、Client/Coach/Admin 接口）
-- `docs/RBAC_SPEC.md`：RBAC 权限规范（最容易漏的校验点、门禁函数、每个 route 的使用）
-- `docs/CLIENT_API_ACCEPTANCE.md`：Client 邀请测评闭环手工验收步骤
-- `docs/COACH_API_IMPLEMENTATION.md`：Coach 端接口实现总结（含 realtime_panel 数据来源与 SOP 命中）
-- `docs/ADMIN_V1_IMPLEMENTATION.md`：Admin v1 实现总结（题库版本保护、审计写入点、验收方式）
-- `docs/SMOKE_TEST_AUTHZ.md`：门禁层 smoke test 清单（含 P1 场景）
+- `docs/04_API_and_Security/API_SPEC.md`：API 规范文档（含错误码、返回结构、Client/Coach/Admin 接口）
+- `docs/04_API_and_Security/RBAC_SPEC.md`：RBAC 权限规范（最容易漏的校验点、门禁函数、每个 route 的使用）
+- `docs/07_Test_and_Release/CLIENT_API_ACCEPTANCE.md`：Client 邀请测评闭环手工验收步骤
+- `docs/04_API_and_Security/COACH_API_IMPLEMENTATION.md`：Coach 端接口实现总结（含 realtime_panel 数据来源与 SOP 命中）
+- `docs/04_API_and_Security/ADMIN_V1_IMPLEMENTATION.md`：Admin v1 实现总结（题库版本保护、审计写入点、验收方式）
+- `docs/07_Test_and_Release/SMOKE_TEST_AUTHZ.md`：门禁层 smoke test 清单（含 P1 场景）
 
 部署/运维：
-- `docs/DEPLOY_PROD.md`：生产环境灰度部署指南
-- `docs/GITHUB_ENV_PRODUCTION.md`：GitHub Environments: production 配置（DB Deploy）
-- `docs/260107.md`：DB Deploy 工程化落地（migrate + seed + smoke gate）
+- `docs/08_Deployment_and_Ops/DEPLOY_PROD.md`：生产环境灰度部署指南
+- `docs/08_Deployment_and_Ops/GITHUB_ENV_PRODUCTION.md`：GitHub Environments: production 配置（DB Deploy）
+- `docs/08_Deployment_and_Ops/260107.md`：DB Deploy 工程化落地（migrate + seed + smoke gate）
 
 审计/复盘（历史）：
-- `docs/debug260106.md`：生产级 debug 与代码审查报告（含修复项与验收结果）
-- `docs/debug_v2.md`：V1 prompt 对照审计（开发进度 & 功能完成度）
-- `docs/allprompt_v1.md`：最初需求 prompt（历史参考，非现行规范）
+- `docs/99_Archive/debug260106.md`：生产级 debug 与代码审查报告（含修复项与验收结果）
+- `docs/99_Archive/debug_v2.md`：V1 prompt 对照审计（开发进度 & 功能完成度）
+- `docs/99_Archive/allprompt_v1.md`：最初需求 prompt（历史参考，非现行规范）
 
 ---
 
@@ -248,37 +248,37 @@ P2（长期演进）：
 ### A. 0→1 立项与共识冻结（把想法变成可开工）
 
 已存在：
-- ✅ `docs/交易行为结构测评系统.md`：产品定位/分层/角色边界/测评体系/邀请体系/页面结构/价值流向
+- ✅ `docs/01_Project/交易行为结构测评系统.md`：产品定位/分层/角色边界/测评体系/邀请体系/页面结构/价值流向
 
 建议新增（优先级 P0~P1）：
 - ⬜ `docs/PRODUCT_VISION_AND_BOUNDARY.md`：一句话定位、不做什么、合规免责声明口径
-- ⬜ `docs/SCOPE_FREEZE.md`：范围冻结点（fast/pro、三层结构、关键规则与不做项）
-- ⬜ `docs/USER_SCENARIOS.md`：适合/不适合人群、典型路径（快测→解释→陪跑承接）
+- ⬜ `docs/01_Project/SCOPE_FREEZE.md`：范围冻结点（fast/pro、三层结构、关键规则与不做项）
+- ⬜ `docs/01_Project/USER_SCENARIOS.md`：适合/不适合人群、典型路径（快测→解释→陪跑承接）
 - ⬜ `docs/COMPETITION_AND_POSITIONING.md`：为什么不是投顾/信号/“AI 工具”主卖点
 - ⬜ `docs/MILESTONES.md`：MVP→灰度→小规模上线→迭代里程碑
 
 ### B. 产品设计（PRD/交互/内容）
 
 已存在（偏工程规范）：
-- ✅ `docs/API_SPEC.md`、`docs/RBAC_SPEC.md`（接口/权限规范）
+- ✅ `docs/04_API_and_Security/API_SPEC.md`、`docs/04_API_and_Security/RBAC_SPEC.md`（接口/权限规范）
 
 建议新增（优先级 P0~P2）：
-- ⬜ `docs/PRD_OVERVIEW.md`：总 PRD（范围、流程、权限、埋点、验收）
+- ⬜ `docs/02_Product/PRD_OVERVIEW.md`：总 PRD（范围、流程、权限、埋点、验收）
 - ⬜ `docs/PRD_ASSESSMENT_FAST.md`：fast 题型/计分/分档/解释规则/一致性软检测
 - ⬜ `docs/PRD_ASSESSMENT_PRO.md`：pro 六维、画像结构、结果页组件、阶段判定规则
-- ⬜ `docs/CONTENT_ASSET_SPEC.md`：题库/画像/方法论/内训的字段规范与版本策略（对应 `data/seed/*.json`）
+- ⬜ `docs/02_Product/CONTENT_ASSET_SPEC.md`：题库/画像/方法论/内训的字段规范与版本策略（对应 `data/seed/*.json`）
 - ⬜ `docs/COPYWRITING_RULES_RESULT_PAGE.md`：结果解释文案规范（可解释、可复述、可承接 SOP，且不触碰红线）
 - ⬜ `docs/SOP_MAPPING_SPEC.md`：画像/阶段/tags → SOP 的映射策略（可配置项、优先级、灰度与回滚）
 - ⬜ `docs/TEACHER_PLAYBOOK.md`：助教陪跑交付制度（边界、话术、违规分级处置、升级/降级机制）
-- ⬜ `docs/PRD_COACH_CONSOLE.md`：助教后台 PRD（客户/邀请/测评/解释/标签/SOP/导出/复训记录）
+- ⬜ `docs/05_Admin_and_Coach/PRD_COACH_CONSOLE.md`：助教后台 PRD（客户/邀请/测评/解释/标签/SOP/导出/复训记录）
 - ⬜ `docs/PRD_ADMIN_CONSOLE_MINI.md`：总后台 PRD（账号、题库、SOP、内容资产、审计）
 
 ### C. 研发与架构（让全栈可直接开干）
 
 已存在：
 - ✅ `README.md`：本地启动/结构说明
-- ✅ `docs/API_SPEC.md`、`docs/RBAC_SPEC.md`：接口与权限
-- ✅ `docs/DEPLOY_PROD.md`、`docs/260107.md`、`docs/GITHUB_ENV_PRODUCTION.md`：部署工程化
+- ✅ `docs/04_API_and_Security/API_SPEC.md`、`docs/04_API_and_Security/RBAC_SPEC.md`：接口与权限
+- ✅ `docs/08_Deployment_and_Ops/DEPLOY_PROD.md`、`docs/08_Deployment_and_Ops/260107.md`、`docs/08_Deployment_and_Ops/GITHUB_ENV_PRODUCTION.md`：部署工程化
 
 建议新增（优先级 P0~P2）：
 - ⬜ `docs/ARCHITECTURE.md`：端到端数据流（invite→attempt→scoring→tags→SOP→realtime_panel）
@@ -292,25 +292,24 @@ P2（长期演进）：
 ### D. 测试、验收与合规上线
 
 已存在：
-- ✅ `docs/CLIENT_API_ACCEPTANCE.md`：Client 闭环手工验收
-- ✅ `docs/SMOKE_TEST_AUTHZ.md` + `scripts/smoke-test-authz.sh`：门禁 smoke
+- ✅ `docs/07_Test_and_Release/CLIENT_API_ACCEPTANCE.md`：Client 闭环手工验收
+- ✅ `docs/07_Test_and_Release/SMOKE_TEST_AUTHZ.md` + `scripts/smoke-test-authz.sh`：门禁 smoke
 - ✅ `scripts/smoke-prod-gate.ts`：生产只读 gate（migrations/seed/v1 只读门禁）
 
 建议新增（优先级 P0~P2）：
-- ⬜ `docs/TEST_PLAN.md`：功能/兼容/性能/安全测试计划（重点：权限与数据隔离）
-- ⬜ `docs/UAT_CHECKLIST.md`：UAT 验收标准（流程/解释可承接/红线校验）
-- ⬜ `docs/CONTENT_COMPLIANCE_CHECKLIST.md`：内容合规审查清单（禁用词、暗示收益、投顾风险）
-- ⬜ `docs/GRAY_RELEASE_AND_ROLLBACK.md`：灰度与回滚方案（题库/规则引擎/内容资产版本可回滚）
-- ⬜ `docs/RELEASE_NOTES_TEMPLATE.md`：上线说明与变更记录模板
-- ⬜ `docs/RUNBOOK.md`：运行手册（告警、日志、数据修复、应急预案、手工补单）
+- ⬜ `docs/07_Test_and_Release/TEST_PLAN.md`：功能/兼容/性能/安全测试计划（重点：权限与数据隔离）
+- ⬜ `docs/07_Test_and_Release/UAT_CHECKLIST.md`：UAT 验收标准（流程/解释可承接/红线校验）
+- ⬜ `docs/07_Test_and_Release/CONTENT_COMPLIANCE_CHECKLIST.md`：内容合规审查清单（禁用词、暗示收益、投顾风险）
+- ⬜ `docs/07_Test_and_Release/GRAY_RELEASE_AND_ROLLBACK.md`：灰度与回滚方案（题库/规则引擎/内容资产版本可回滚）
+- ⬜ `docs/07_Test_and_Release/RELEASE_NOTES_TEMPLATE.md`：上线说明与变更记录模板
+- ⬜ `docs/08_Deployment_and_Ops/RUNBOOK.md`：运行手册（告警、日志、数据修复、应急预案、手工补单）
 
 ### E. 运营增长与交付（上线后跑起来）
 
 建议新增（优先级 P1~P2）：
-- ⬜ `docs/OPS_COLD_START_PLAN.md`：冷启动运营方案（邀请制、助教 SOP、样本收集与复盘）
-- ⬜ `docs/METRICS_AND_TRACKING_PLAN.md`：指标与埋点方案（完成率、复测率、转化率、陪跑留存）
+- ⬜ `docs/09_Operations_and_Growth/OPS_COLD_START_PLAN.md`：冷启动运营方案（邀请制、助教 SOP、样本收集与复盘）
+- ⬜ `docs/09_Operations_and_Growth/METRICS_AND_TRACKING_PLAN.md`：指标与埋点方案（完成率、复测率、转化率、陪跑留存）
 - ⬜ `docs/CONTENT_ITERATION_MECHANISM.md`：内容迭代机制（题库/画像解释 A/B、SOP 映射优化）
 - ⬜ `docs/CS_FAQ_AND_SUPPORT.md`：客户支持与 FAQ（解读边界、投诉处理、退款/条款若涉及）
-- ⬜ `docs/COACH_TRAINING_MATERIALS.md`：助教培训材料（PPT/话术手册/考核题库）
+- ⬜ `docs/09_Operations_and_Growth/COACH_TRAINING_MATERIALS.md`：助教培训材料（PPT/话术手册/考核题库）
 - ⬜ `docs/DATA_ASSET_STRATEGY.md`：数据资产策略（行为演进记录如何沉淀为长期客户关系资产）
-

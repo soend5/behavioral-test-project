@@ -2,7 +2,7 @@
 
 > 审计角色：资深全栈架构师 + 技术审计官  
 > 审计目的：判断“allprompt_v1.md 的预期”与“当前代码仓库现状”的达成率（而非新增功能）。  
-> 审计范围：`docs/allprompt_v1.md` + `docs/` 现有规范文档 + `app/`、`lib/`、`prisma/` 当前实现（静态审计）。
+> 审计范围：`docs/99_Archive/allprompt_v1.md` + `docs/` 现有规范文档 + `app/`、`lib/`、`prisma/` 当前实现（静态审计）。
 
 ## 结论摘要（TL;DR）
 
@@ -22,7 +22,7 @@
 ## 一、功能覆盖审计（What）
 
 > 说明：  
-> - **Prompt 覆盖**：该能力在 `docs/allprompt_v1.md` 中是“明确/隐含/缺失”。  
+> - **Prompt 覆盖**：该能力在 `docs/99_Archive/allprompt_v1.md` 中是“明确/隐含/缺失”。  
 > - **代码达成**：当前仓库对该能力的落地情况“是/部分/否”（以 **可验收** 为准：接口可跑通 + 必要页面可用）。
 
 ### 1) Client 测评闭环
@@ -51,7 +51,7 @@
 
 | 功能项 | Prompt 覆盖 | 代码达成 | 证据与备注（关键文件） |
 |---|---|---|---|
-| 助教账号管理 | 明确 | **否** | 页面占位：`app/admin/coaches/page.tsx`；缺少接口：未发现 `app/api/admin/coaches/**`（但 `docs/API_SPEC.md`、`docs/RBAC_SPEC.md` 中已写入该接口规范） |
+| 助教账号管理 | 明确 | **否** | 页面占位：`app/admin/coaches/page.tsx`；缺少接口：未发现 `app/api/admin/coaches/**`（但 `docs/04_API_and_Security/API_SPEC.md`、`docs/04_API_and_Security/RBAC_SPEC.md` 中已写入该接口规范） |
 | 题库管理（quiz / questions / options） | 明确 | **部分** | API 已实现：`app/api/admin/quiz/*`、`app/api/admin/questions/*`、`app/api/admin/options/*`；页面已能拉列表：`app/admin/quiz/page.tsx`、`app/admin/questions/page.tsx`、`app/admin/options/page.tsx`（但缺少创建/编辑表单） |
 | quiz_version 不可破坏策略 | 明确 | **部分（核心满足）** | 保护逻辑在 `app/api/admin/quiz/[id]/route.ts`（quiz 被 invite/attempt 使用后，阻止修改 version/quizVersion）；但 “status=inactive 禁止新 invite 使用”未在 coach 创建 invite 时前置校验 |
 | SOP 配置（4 张表） | 明确 | **部分** | API 已实现：`app/api/admin/sop/definition/*`、`app/api/admin/sop/rule/*`、`app/api/admin/sop/stage/*`、`app/api/admin/sop/stage-map/*`；页面仅展示 definition 列表：`app/admin/sop/page.tsx`（缺少 rule/stage/stage-map 的可视化配置） |
@@ -86,7 +86,7 @@
 
 ### 是否具备清晰的 Step-by-step 实现与验收路径
 
-- **结论：文档层面具备**：`docs/API_SPEC.md`、`docs/RBAC_SPEC.md`、`docs/CLIENT_API_ACCEPTANCE.md`、`docs/COACH_API_IMPLEMENTATION.md`、`docs/ADMIN_V1_IMPLEMENTATION.md`、`docs/SMOKE_TEST_AUTHZ.md` 提供了清晰验收清单。  
+- **结论：文档层面具备**：`docs/04_API_and_Security/API_SPEC.md`、`docs/04_API_and_Security/RBAC_SPEC.md`、`docs/07_Test_and_Release/CLIENT_API_ACCEPTANCE.md`、`docs/04_API_and_Security/COACH_API_IMPLEMENTATION.md`、`docs/04_API_and_Security/ADMIN_V1_IMPLEMENTATION.md`、`docs/07_Test_and_Release/SMOKE_TEST_AUTHZ.md` 提供了清晰验收清单。  
 - **但存在“文档宣称 vs 代码缺失”**：如 admin coaches 接口在文档中存在、代码中不存在。
 
 ### 特别检查：quiz_version 是否真的不可被破坏式修改
@@ -239,4 +239,3 @@
 
 - **建议档位**：C) 可小规模真实上线（具备可验收的最小闭环 + 关键权限/并发约束已落库）。  
 - **综合完成度（估算）**：≈ 85%（核心闭环补齐；后续更多是 UI/易用性/更细颗粒的管理能力与更完整的验收脚本）。
-
