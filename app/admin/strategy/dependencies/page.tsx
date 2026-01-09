@@ -134,8 +134,10 @@ export default function DependenciesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">配置依赖关系</h1>
-          <p className="text-gray-500 mt-1">
-            查看 SOP、话术、标签之间的关联关系
+          <p className="text-gray-500 mt-1 max-w-2xl">
+            可视化展示 SOP策略、话术模板、标签之间的关联关系。帮助您理解配置结构，
+            发现潜在冲突（如触发条件重叠、孤立话术等），优化系统配置。
+            点击"冲突检测"可自动扫描配置问题。
           </p>
         </div>
         <button

@@ -26,10 +26,15 @@ export async function PATCH(
     const userId = params.id;
 
     const body = await request.json();
-    const { password, status } = body as { password?: unknown; status?: unknown };
+    const { password, status, name, wechatQrcode } = body as { 
+      password?: unknown; 
+      status?: unknown;
+      name?: unknown;
+      wechatQrcode?: unknown;
+    };
 
-    if (password === undefined && status === undefined) {
-      return fail(ErrorCode.VALIDATION_ERROR, "至少提供 password 或 status");
+    if (password === undefined && status === undefined && name === undefined && wechatQrcode === undefined) {
+      return fail(ErrorCode.VALIDATION_ERROR, "至少提供 password、status、name 或 wechatQrcode");
     }
 
     if (password !== undefined) {
@@ -48,9 +53,17 @@ export async function PATCH(
       return fail(ErrorCode.VALIDATION_ERROR, "status 必须是 active 或 inactive");
     }
 
+    if (name !== undefined && name !== null && typeof name !== "string") {
+      return fail(ErrorCode.VALIDATION_ERROR, "name 必须为 string 或 null");
+    }
+
+    if (wechatQrcode !== undefined && wechatQrcode !== null && typeof wechatQrcode !== "string") {
+      return fail(ErrorCode.VALIDATION_ERROR, "wechatQrcode 必须为 string 或 null");
+    }
+
     const existing = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, role: true, status: true, username: true },
+      select: { id: true, role: true, status: true, username: true, name: true, wechatQrcode: true },
     });
 
     if (!existing) {
@@ -69,10 +82,14 @@ export async function PATCH(
       data: {
         ...(status !== undefined ? { status } : {}),
         ...(passwordHash ? { passwordHash } : {}),
+        ...(name !== undefined ? { name: name as string | null } : {}),
+        ...(wechatQrcode !== undefined ? { wechatQrcode: wechatQrcode as string | null } : {}),
       },
       select: {
         id: true,
         status: true,
+        name: true,
+        wechatQrcode: true,
         updatedAt: true,
       },
     });
@@ -80,6 +97,8 @@ export async function PATCH(
     await writeAudit(prisma, session.user.id, "user.update", "user", userId, {
       status: status ?? existing.status,
       passwordChanged: password !== undefined,
+      nameChanged: name !== undefined,
+      wechatQrcodeChanged: wechatQrcode !== undefined,
     });
 
     return ok({ user: updated });

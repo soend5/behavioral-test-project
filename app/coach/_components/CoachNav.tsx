@@ -8,6 +8,7 @@ const links: Array<{ href: string; label: string }> = [
   { href: "/coach/dashboard", label: "参与者档案" },
   { href: "/coach/invites", label: "邀请管理" },
   { href: "/coach/invites/new", label: "新建邀请" },
+  { href: "/coach/profile", label: "个人信息" },
 ];
 
 export function CoachNav() {

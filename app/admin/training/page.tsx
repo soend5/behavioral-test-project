@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminNav } from "../_components/AdminNav";
 
 type ApiOk<T> = { ok: true; data: T };
 type ApiFail = { ok: false; error: { code: string; message: string } };
@@ -277,20 +278,28 @@ export default function AdminTrainingPage() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">训练计划管理</h1>
-        <button
-          onClick={() => {
-            setEditingPlan(null);
-            setPlanForm({ name: "", description: "", durationDays: 7 });
-            setShowPlanForm(true);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          + 新建计划
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <AdminNav />
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-2xl font-bold">训练计划管理</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              创建和管理客户行为训练计划。训练计划包含多天任务，帮助客户建立良好的行为习惯。
+              您可以为每天配置阅读、反思、行动三种类型的任务。
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingPlan(null);
+              setPlanForm({ name: "", description: "", durationDays: 7 });
+              setShowPlanForm(true);
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            + 新建计划
+          </button>
+        </div>
 
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
@@ -675,6 +684,7 @@ export default function AdminTrainingPage() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -56,6 +56,17 @@ const FOLLOW_UP_TEMPLATES = [
   },
 ];
 
+// 获取当前日期时间（格式化为 datetime-local 需要的格式）
+function getCurrentDateTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 export function FollowUpSection({ customerId }: Props) {
   const [logs, setLogs] = useState<FollowUpLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +76,7 @@ export function FollowUpSection({ customerId }: Props) {
     type: "wechat" as "wechat" | "call" | "note",
     content: "",
     nextAction: "",
-    nextDate: "",
+    nextDate: getCurrentDateTime(),
   });
 
   const load = useCallback(async () => {
@@ -116,7 +127,7 @@ export function FollowUpSection({ customerId }: Props) {
       }
 
       // Reset form and reload
-      setNewLog({ type: "wechat", content: "", nextAction: "", nextDate: "" });
+      setNewLog({ type: "wechat", content: "", nextAction: "", nextDate: getCurrentDateTime() });
       await load();
     } catch {
       setError("保存失败");
@@ -142,7 +153,7 @@ export function FollowUpSection({ customerId }: Props) {
                   type: tpl.type,
                   content: tpl.content,
                   nextAction: tpl.nextAction,
-                  nextDate: "",
+                  nextDate: getCurrentDateTime(),
                 })}
                 className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100"
               >
@@ -184,7 +195,7 @@ export function FollowUpSection({ customerId }: Props) {
             className="flex-1 min-w-[150px] border rounded px-2 py-1 text-sm"
           />
           <input
-            type="date"
+            type="datetime-local"
             value={newLog.nextDate}
             onChange={(e) => setNewLog((p) => ({ ...p, nextDate: e.target.value }))}
             className="border rounded px-2 py-1 text-sm"
@@ -227,7 +238,13 @@ export function FollowUpSection({ customerId }: Props) {
                   → {log.nextAction}
                   {log.nextDate && (
                     <span className="text-gray-500 ml-2">
-                      ({new Date(log.nextDate).toLocaleDateString()})
+                      ({new Date(log.nextDate).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })})
                     </span>
                   )}
                 </p>

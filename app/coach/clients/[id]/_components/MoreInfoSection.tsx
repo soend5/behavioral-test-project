@@ -61,10 +61,6 @@ type Props = {
 export function MoreInfoSection({ data }: Props) {
   const [expanded, setExpanded] = useState(false);
 
-  const displaySystemTags = (data.latestAttempt?.tags || [])
-    .map(getDisplayTag)
-    .filter((t): t is NonNullable<ReturnType<typeof getDisplayTag>> => t !== null);
-
   return (
     <div className="bg-white rounded-lg shadow-lg">
       <button
@@ -96,30 +92,14 @@ export function MoreInfoSection({ data }: Props) {
                     </div>
                   </div>
                   <div className="border rounded p-3">
-                    <div className="text-gray-500">阶段</div>
+                    <div className="text-gray-500">陪跑阶段</div>
                     <div className="font-semibold">
-                      {getStageDisplay(data.latestAttempt.stage).labelCn.replace("陪跑阶段：", "")}
+                      {getStageDisplay(data.latestAttempt.stage).labelCn}
                     </div>
                   </div>
                 </div>
 
-                <div className="border rounded p-4">
-                  <div className="text-sm text-gray-500 mb-2">可见标签</div>
-                  <div className="flex flex-wrap gap-2">
-                    {displaySystemTags.map((t) => (
-                      <span
-                        key={t.tag}
-                        title={t.explanationCn}
-                        className="text-xs bg-gray-50 border rounded px-2 py-1"
-                      >
-                        {t.labelCn}
-                      </span>
-                    ))}
-                    {!displaySystemTags.length && (
-                      <span className="text-sm text-gray-400">无</span>
-                    )}
-                  </div>
-                </div>
+
 
                 <div className="border rounded p-4">
                   <div className="text-sm text-gray-500 mb-2">逐题答案</div>
@@ -164,7 +144,7 @@ export function MoreInfoSection({ data }: Props) {
                     <tr className="text-left border-b">
                       <th className="py-2 pr-2">提交时间</th>
                       <th className="py-2 pr-2">版本</th>
-                      <th className="py-2 pr-2">阶段</th>
+                      <th className="py-2 pr-2">陪跑阶段</th>
                       <th className="py-2 pr-2">标签数</th>
                     </tr>
                   </thead>
@@ -178,7 +158,7 @@ export function MoreInfoSection({ data }: Props) {
                           {a.quizVersion}/{a.version}
                         </td>
                         <td className="py-2 pr-2">
-                          {getStageDisplay(a.stage).labelCn.replace("陪跑阶段：", "")}
+                          {getStageDisplay(a.stage).labelCn}
                         </td>
                         <td className="py-2 pr-2">{a.tags.length}</td>
                       </tr>
@@ -191,30 +171,7 @@ export function MoreInfoSection({ data }: Props) {
             )}
           </div>
 
-          {/* 完整陪跑提示 */}
-          {data.realtimePanel && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">完整陪跑提示</h3>
-              <div className="space-y-3 text-sm">
-                {data.realtimePanel.stateSummary && (
-                  <div>
-                    <div className="text-gray-500">状态判断</div>
-                    <div className="font-medium">{data.realtimePanel.stateSummary}</div>
-                  </div>
-                )}
-                {data.realtimePanel.forbiddenList?.length ? (
-                  <div>
-                    <div className="text-gray-500 mb-1">禁用行为</div>
-                    <ul className="list-disc pl-5 space-y-1 text-red-700">
-                      {data.realtimePanel.forbiddenList.map((s) => (
-                        <li key={s}>{s}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-          )}
+
         </div>
       )}
     </div>

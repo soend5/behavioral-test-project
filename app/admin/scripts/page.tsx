@@ -239,8 +239,10 @@ export default function AdminScriptsPage() {
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-1">沟通话术库</h1>
-        <p className="text-sm text-gray-600 mb-4">
-          管理助教话术模板，支持按阶段、画像、适用场景智能匹配推荐。
+        <p className="text-sm text-gray-600 mb-4 max-w-3xl">
+          管理助教沟通话术模板。话术可按分类（首次沟通/跟进/转化/复测）、触发阶段、触发画像进行配置。
+          支持变量替换（如客户姓名）。配置后，助教端会根据客户情况智能推荐匹配的话术。
+          可在"策略中心"将话术关联到具体SOP策略。
         </p>
 
         {error && (

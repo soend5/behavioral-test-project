@@ -263,6 +263,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                                 </ul>
                               </div>
                             ) : null}
+                            {data.realtimePanel.forbiddenList?.length ? (
+                              <div className="mt-3 border-t pt-3">
+                                <div className="text-red-600 text-xs mb-1">⚠️ 禁用行为</div>
+                                <ul className="list-disc pl-5 space-y-1 text-sm text-red-700">
+                                  {data.realtimePanel.forbiddenList.map((s) => (
+                                    <li key={s}>{s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
                           </>
                         );
                       })()}

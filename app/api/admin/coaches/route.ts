@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         username: true,
+        name: true,
+        wechatQrcode: true,
         role: true,
         status: true,
         createdAt: true,
@@ -46,6 +48,8 @@ export async function GET(request: NextRequest) {
       coaches: coaches.map((coach) => ({
         id: coach.id,
         username: coach.username,
+        name: coach.name,
+        wechatQrcode: coach.wechatQrcode,
         role: coach.role,
         status: coach.status,
         createdAt: coach.createdAt,

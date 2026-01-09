@@ -36,10 +36,10 @@ export function KeyInfoCard({ archetype, stage, segment, tags = [] }: Props) {
           <div className="text-xs text-gray-500 mb-1">画像类型</div>
           <div className="font-semibold text-gray-900">{archetypeLabel}</div>
         </div>
-        <div className="text-center border-x border-blue-100">
+          <div className="text-center border-x border-blue-100">
           <div className="text-xs text-gray-500 mb-1">陪跑阶段</div>
           <div className="font-semibold text-gray-900">
-            {stageMeta.labelCn.replace("陪跑阶段：", "")}
+            {stageMeta.labelCn}
           </div>
         </div>
         <div className="text-center">

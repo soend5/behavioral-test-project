@@ -415,8 +415,10 @@ export default function AdminSOPPage() {
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
         <h1 className="text-2xl font-bold mb-1">陪跑策略配置</h1>
-        <p className="text-sm text-gray-600 mb-4">
-          管理陪跑策略与触发条件，用于助教端实时陪跑提示。
+        <p className="text-sm text-gray-600 mb-4 max-w-3xl">
+          管理陪跑策略（SOP）与触发规则。策略定义包含核心目标、推荐策略、禁用行为等内容；
+          触发规则定义了何时激活策略（基于阶段和标签组合）。配置后，助教端会根据客户标签自动推荐对应策略。
+          建议使用"策略中心"进行更便捷的可视化管理。
         </p>
 
         {error && (

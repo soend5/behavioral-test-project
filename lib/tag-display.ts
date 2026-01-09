@@ -13,27 +13,27 @@ export type DisplayTag = {
 
 const ARCHETYPE_DISPLAY: Record<string, { labelCn: string; explanationCn: string }> = {
   rule_executor: {
-    labelCn: "推进方式：规则对齐",
+    labelCn: "画像：规则对齐型",
     explanationCn: "更习惯先对齐规则/边界再推进",
   },
   emotion_driven: {
-    labelCn: "推进方式：受感受牵引",
+    labelCn: "画像：感受牵引型",
     explanationCn: "反馈强烈时节奏更容易被带动",
   },
   experience_reliant: {
-    labelCn: "推进方式：依赖既有经验",
+    labelCn: "画像：经验依赖型",
     explanationCn: "更常用熟悉打法来判断下一步",
   },
   opportunity_seeker: {
-    labelCn: "推进方式：关注新机会",
+    labelCn: "画像：机会关注型",
     explanationCn: "更容易被新信息吸引而调整方向",
   },
   defensive_observer: {
-    labelCn: "推进方式：谨慎观望",
+    labelCn: "画像：谨慎观望型",
     explanationCn: "不明朗时更倾向先观察再行动",
   },
   impulsive_reactor: {
-    labelCn: "推进方式：快速反应",
+    labelCn: "画像：快速反应型",
     explanationCn: "更容易先动起来，再边做边校准",
   },
 };
@@ -215,13 +215,13 @@ export function getStageDisplay(stage: string | null | undefined): {
   explanationCn: string;
 } {
   if (stage === "pre") {
-    return { stageId: "pre", labelCn: "陪跑阶段：解释", explanationCn: "先对齐规则与目标，建立推进节奏" };
+    return { stageId: "pre", labelCn: "认知建立期", explanationCn: "建立信任，了解客户需求，对齐目标" };
   }
   if (stage === "mid") {
-    return { stageId: "mid", labelCn: "陪跑阶段：反思", explanationCn: "围绕分歧点做复盘，收敛下一步" };
+    return { stageId: "mid", labelCn: "行动推进期", explanationCn: "推动客户采取行动，跟进执行情况" };
   }
   if (stage === "post") {
-    return { stageId: "post", labelCn: "陪跑阶段：执行", explanationCn: "把行动拆到下一步，形成跟进节奏" };
+    return { stageId: "post", labelCn: "成果巩固期", explanationCn: "巩固成果，建立长期关系，促进复购" };
   }
-  return { stageId: stage || "-", labelCn: "陪跑阶段：未判定", explanationCn: "暂未形成阶段信号" };
+  return { stageId: stage || "-", labelCn: "未判定", explanationCn: "暂未形成阶段信号" };
 }

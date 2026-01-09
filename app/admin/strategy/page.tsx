@@ -190,8 +190,9 @@ export default function StrategyCenterPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold">策略中心</h1>
-            <p className="text-sm text-gray-600">
-              统一管理陪跑策略与关联话术，按阶段配置触发条件
+            <p className="text-sm text-gray-600 max-w-2xl">
+              陪跑策略的统一配置管理平台。按阶段（认知期/行动期/巩固期）定义SOP策略，
+              配置触发条件和关联话术。选择左侧策略可查看详情、影响范围预览，并管理关联的话术模板。
             </p>
           </div>
           <div className="flex gap-2">

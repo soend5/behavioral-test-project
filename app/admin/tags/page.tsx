@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { AdminNav } from "../_components/AdminNav";
-import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
+import { getDisplayTag } from "@/lib/tag-display";
 
 type TagInfo = {
   tag: string;
@@ -27,7 +27,7 @@ const TAG_CATEGORIES = [
 
 // 预定义的系统标签
 const SYSTEM_TAGS = [
-  // 画像标签
+  // 画像标签（使用 image: 前缀）
   "image:rule_executor",
   "image:emotion_driven",
   "image:experience_reliant",
@@ -41,13 +41,19 @@ const SYSTEM_TAGS = [
   // 阶段标签
   "phase:fast_completed",
   "phase:pro_completed",
-  // 行为标签
+  // 行为标签（维度评分）
   "rule:high", "rule:medium", "rule:low",
   "risk:high", "risk:medium", "risk:low",
   "emotion:high", "emotion:medium", "emotion:low",
   "consistency:high", "consistency:medium", "consistency:low",
   "opportunity:high", "opportunity:medium", "opportunity:low",
   "experience:high", "experience:medium", "experience:low",
+  // 分层标签
+  "segment:high_potential",
+  "segment:needs_attention",
+  "segment:active",
+  "segment:inactive",
+  "segment:new",
   // 助教标签示例
   "coach:high_value",
   "coach:needs_attention",
@@ -144,8 +150,10 @@ export default function TagsManagementPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold">标签管理中心</h1>
-            <p className="text-sm text-gray-600">
-              统一管理系统中使用的所有标签及其含义
+            <p className="text-sm text-gray-600 max-w-2xl">
+              统一管理系统中使用的所有标签。标签分为：画像标签（客户行为类型）、
+              阶段标签（测评完成状态）、行为标签（各维度评分）、分层标签（客户价值分层）、
+              助教标签（助教自定义标记）。点击分类卡片可筛选查看。
             </p>
           </div>
         </div>
