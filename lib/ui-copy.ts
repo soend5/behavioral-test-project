@@ -11,6 +11,13 @@ export const COMPLIANCE_NOTICE_CN =
 export const COMPLIANCE_NOTICE_FULL_CN =
   "提示：本测评及结果用于生成行为结构画像与沟通建议参考，不构成投资顾问服务或任何买卖建议，不承诺收益。";
 
+// v1.9: 分场景合规提示
+export const COMPLIANCE_NOTICES = {
+  coach_panel: "以下为沟通参考，请勿作为投资建议",
+  result_page: "这是你的行为结构画像，用于和助教对齐下一步",
+  landing_page: "本测评帮你看清操作习惯，不涉及投资建议",
+} as const;
+
 // v1.5: 落地页文案
 export const LANDING_PAGE_COPY = {
   title: "3分钟，看清你炒股时最容易在哪一步乱动",

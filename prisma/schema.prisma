@@ -144,6 +144,7 @@ model SopDefinition {
   // 关系
   rules          SopRule[]
   stageMaps      SopStageMap[]
+  scripts        ScriptTemplate[]  // v2.0: 关联话术
 
   @@index([status, sopStage, priority])
   @@map("sop_definition")
@@ -388,6 +389,9 @@ model ScriptTemplate {
   variablesJson    String?  @map("variables_json")     // JSON array ["customerName", "archetype"]
   status           String   @default("active")         // "active" / "inactive"
   usageCount       Int      @default(0) @map("usage_count")
+  // v2.0: 关联 SOP
+  sopId            String?  @map("sop_id")
+  sop              SopDefinition? @relation(fields: [sopId], references: [sopId])
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -395,6 +399,7 @@ model ScriptTemplate {
 
   @@index([status, category])
   @@index([triggerStage, triggerArchetype])
+  @@index([sopId])
   @@map("script_templates")
 }
 
@@ -562,4 +567,21 @@ model TaskCompletion {
   @@index([enrollmentId])
   @@index([taskId])
   @@map("task_completions")
+}
+
+
+// --- v2.2: 配置版本管理 ---
+model ConfigVersion {
+  id          String   @id @default(cuid())
+  configType  String   @map("config_type")  // "sop" | "script" | "training"
+  configId    String   @map("config_id")
+  version     Int      @default(1)
+  dataJson    String   @map("data_json") @db.Text
+  changedBy   String   @map("changed_by")
+  changeNote  String?  @map("change_note")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([configType, configId, version])
+  @@index([configType, configId, createdAt])
+  @@map("config_versions")
 }

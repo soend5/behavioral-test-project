@@ -4,10 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { CoachNav } from "../../_components/CoachNav";
 import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
-import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
+import { COMPLIANCE_NOTICES } from "@/lib/ui-copy";
 import { csrfFetch } from "@/lib/csrf-client";
 import { ScriptPanel } from "./_components/ScriptPanel";
 import { FollowUpSection } from "./_components/FollowUpSection";
+import { KeyInfoCard } from "./_components/KeyInfoCard";
+import { MoreInfoSection } from "./_components/MoreInfoSection";
 
 type CoachTag = { id: string; tagKey: string; createdAt: string };
 type AttemptTimelineItem = {
@@ -208,292 +210,162 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
         {loading ? (
           <div className="bg-white rounded-lg shadow-lg p-6">加载中...</div>
         ) : data ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">参与者信息</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <span className="text-gray-500">昵称：</span>
-                    <span>{data.customer.nickname || "-"}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">姓名：</span>
-                    <span>{data.customer.name || "-"}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">手机号：</span>
-                    <span>{data.customer.phone || "-"}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">备注：</span>
-                    <span>{data.customer.note || "-"}</span>
-                  </div>
-                </div>
-              </div>
+          <div className="space-y-6">
+            {/* v1.9: 关键信息卡片置顶 */}
+            <KeyInfoCard
+              archetype={data.latestAttempt?.resultSummary?.archetype}
+              stage={data.latestAttempt?.stage || data.realtimePanel?.stage}
+              tags={data.latestAttempt?.tags || []}
+            />
 
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">最新测评</h2>
-                {data.latestAttempt ? (
-                  <div className="space-y-4">
-                    {(() => {
-                      const stageMeta = getStageDisplay(data.latestAttempt.stage);
-                      return (
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                      <div className="border rounded p-3">
-                        <div className="text-gray-500">版本</div>
-                        <div className="font-semibold">
-                          {data.latestAttempt.quizVersion} / {data.latestAttempt.version}
-                        </div>
-                      </div>
-                      <div className="border rounded p-3">
-                        <div className="text-gray-500">提交时间</div>
-                        <div className="font-semibold">
-                          {new Date(data.latestAttempt.submittedAt).toLocaleString()}
-                        </div>
-                      </div>
-                      <div className="border rounded p-3">
-                        <div className="text-gray-500">阶段</div>
-                        <div className="font-semibold">
-                          {stageMeta.labelCn.replace("陪跑阶段：", "")}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">{stageMeta.explanationCn}</div>
-                      </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* 左侧主内容区 */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* v1.9: 话术面板上移到主内容区顶部 */}
+                <ScriptPanel
+                  customerId={customerId}
+                  customerName={data.customer.nickname || data.customer.name || undefined}
+                  archetype={data.latestAttempt?.resultSummary?.archetype}
+                />
+
+                {/* 陪跑建议精简版 */}
+                {data.realtimePanel && (
+                  <div className="bg-white rounded-lg shadow-lg p-6">
+                    <h2 className="text-lg font-semibold mb-3">📋 陪跑建议</h2>
+                    <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
+                      {COMPLIANCE_NOTICES.coach_panel}
                     </div>
-                      );
-                    })()}
-
-                    <div className="border rounded p-4">
-                      <div className="text-sm text-gray-500 mb-2">可见标签（展示映射）</div>
-                      <div className="flex flex-wrap gap-2">
-                        {displaySystemTags.map((t) => (
-                          <span
-                            key={t.tag}
-                            title={t.explanationCn}
-                            className="text-xs bg-gray-50 border rounded px-2 py-1"
-                          >
-                            {t.labelCn}
-                          </span>
-                        ))}
-                        {!displaySystemTags.length ? (
-                          <span className="text-sm text-gray-400">无</span>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div className="border rounded p-4">
-                      <div className="text-sm text-gray-500 mb-2">逐题答案</div>
-                      {data.latestAttempt.answers.length ? (
-                        <div className="space-y-3">
-                          {data.latestAttempt.answers.map((a) => {
-                            const hint = a.hintTag ? getDisplayTag(a.hintTag) : null;
-                            return (
-                              <div key={a.questionId} className="border rounded p-4 bg-white">
-                                <div className="text-sm font-semibold mb-2">
-                                  Q{a.orderNo ?? "-"}：{a.stem ?? a.questionId}
-                                </div>
-                                <div className="text-sm text-gray-900 mb-2">
-                                  <span className="text-gray-500">A：</span>
-                                  {a.optionText || a.optionId}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <span className="text-gray-500">行为点：</span>
-                                  {hint ? `${hint.labelCn} · ${hint.explanationCn}` : "—"}
+                    <div className="space-y-3 text-sm">
+                      {(() => {
+                        const stageMeta = getStageDisplay(data.realtimePanel.stage);
+                        const readable = buildReadableSuggestion(data.realtimePanel);
+                        return (
+                          <>
+                            <div className="border rounded p-3 bg-blue-50 border-blue-200">
+                              <div className="text-blue-700 text-xs mb-1">可照读的一句话建议</div>
+                              <div className="font-medium text-blue-900">{readable}</div>
+                            </div>
+                            {data.realtimePanel.coreGoal && (
+                              <div className="border rounded p-3 bg-green-50 border-green-200">
+                                <div className="text-green-700 text-xs mb-1">当前唯一目标</div>
+                                <div className="font-semibold text-green-900">
+                                  {data.realtimePanel.coreGoal}
                                 </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <p className="text-sm text-gray-400">暂无答案</p>
-                      )}
+                            )}
+                            {data.realtimePanel.strategyList?.length ? (
+                              <div>
+                                <div className="text-gray-500 mb-1">推荐策略</div>
+                                <ul className="list-disc pl-5 space-y-1">
+                                  {data.realtimePanel.strategyList.slice(0, 3).map((s) => (
+                                    <li key={s}>{s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
-                ) : (
-                  <p className="text-sm text-gray-500">暂无已提交的测评记录</p>
                 )}
+
+                {/* 快速记录入口 */}
+                <FollowUpSection customerId={customerId} />
+
+                {/* 更多信息（默认折叠） */}
+                <MoreInfoSection data={data} />
               </div>
 
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">测评时间线</h2>
-                {data.attemptTimeline.length ? (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left border-b">
-                          <th className="py-2 pr-2">提交时间</th>
-                          <th className="py-2 pr-2">版本</th>
-                          <th className="py-2 pr-2">阶段</th>
-                          <th className="py-2 pr-2">标签数</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.attemptTimeline.map((a) => (
-                          <tr key={a.id} className="border-b">
-                            <td className="py-2 pr-2">
-                              {new Date(a.submittedAt).toLocaleString()}
-                            </td>
-                            <td className="py-2 pr-2">
-                              {a.quizVersion}/{a.version}
-                            </td>
-                            <td className="py-2 pr-2">
-                              {getStageDisplay(a.stage).labelCn.replace("陪跑阶段：", "")}
-                            </td>
-                            <td className="py-2 pr-2">{a.tags.length}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">暂无记录</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {/* v1.6: 话术面板 */}
-              <ScriptPanel
-                customerId={customerId}
-                customerName={data.customer.nickname || data.customer.name || undefined}
-                archetype={data.latestAttempt?.resultSummary?.archetype}
-              />
-
-              {/* v1.6: 跟进记录 */}
-              <FollowUpSection customerId={customerId} />
-
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">实时陪跑提示区</h2>
-                <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">
-                  {COMPLIANCE_NOTICE_CN}
-                </div>
-                {data.realtimePanel ? (
-                  <div className="space-y-3 text-sm">
-                    {(() => {
-                      const stageMeta = getStageDisplay(data.realtimePanel.stage);
-                      const readable = buildReadableSuggestion(data.realtimePanel);
-                      return (
-                        <>
-                          <div className="border rounded p-3 bg-gray-50">
-                            <div className="text-gray-500 text-xs mb-1">陪跑阶段</div>
-                            <div className="font-semibold">
-                              {stageMeta.labelCn.replace("陪跑阶段：", "")}
-                            </div>
-                            <div className="text-xs text-gray-600 mt-1">
-                              {stageMeta.explanationCn}
-                            </div>
-                          </div>
-
-                          <div className="border rounded p-3 bg-blue-50 border-blue-200">
-                            <div className="text-blue-700 text-xs mb-1">可照读的一句话建议</div>
-                            <div className="font-medium text-blue-900">{readable}</div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                    {data.realtimePanel.stateSummary ? (
-                      <div>
-                        <div className="text-gray-500">状态判断</div>
-                        <div className="font-medium">{data.realtimePanel.stateSummary}</div>
-                      </div>
-                    ) : null}
-                    {data.realtimePanel.coreGoal ? (
-                      <div className="border rounded p-3 bg-blue-50 border-blue-200">
-                        <div className="text-blue-700 text-xs mb-1">唯一目标</div>
-                        <div className="font-semibold text-blue-900">
-                          {data.realtimePanel.coreGoal}
-                        </div>
-                      </div>
-                    ) : null}
-                    {data.realtimePanel.strategyList?.length ? (
-                      <div>
-                        <div className="text-gray-500 mb-1">推荐沟通策略（最多 3 条）</div>
-                        <ul className="list-disc pl-5 space-y-1">
-                          {data.realtimePanel.strategyList.slice(0, 3).map((s) => (
-                            <li key={s}>{s}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                    {data.realtimePanel.forbiddenList?.length ? (
-                      <div>
-                        <div className="text-gray-500 mb-1">禁用行为</div>
-                        <ul className="list-disc pl-5 space-y-1">
-                          {data.realtimePanel.forbiddenList.map((s) => (
-                            <li key={s}>{s}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">暂无</p>
-                )}
-              </div>
-
-              <div className="bg-white rounded-lg shadow-lg p-6">
-                <h2 className="text-lg font-semibold mb-3">标签</h2>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {displayAllTags.map((t) => (
-                    <span
-                      key={t.tag}
-                      title={t.explanationCn}
-                      className={`text-xs border rounded px-2 py-1 ${
-                        t.kind === "coach"
-                          ? "bg-green-50 border-green-200"
-                          : "bg-gray-50 border-gray-200"
-                      }`}
-                    >
-                      {t.labelCn}
-                    </span>
-                  ))}
-                  {!displayAllTags.length ? (
-                    <span className="text-sm text-gray-400">无</span>
-                  ) : null}
-                </div>
-
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">添加助教标签（coach:*）</div>
-                  <div className="flex gap-2">
-                    <input
-                      value={newTag}
-                      onChange={(e) => setNewTag(e.target.value)}
-                      placeholder="例如 coach:high_value"
-                      className="border rounded px-3 py-2 flex-1"
-                    />
-                    <button
-                      onClick={() => void addTag()}
-                      disabled={tagSubmitting || !newTag.trim()}
-                      className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
-                    >
-                      添加
-                    </button>
+              {/* 右侧边栏 */}
+              <div className="space-y-6">
+                {/* 参与者基本信息 */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h2 className="text-lg font-semibold mb-3">参与者信息</h2>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-500">昵称：</span>
+                      <span>{data.customer.nickname || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">姓名：</span>
+                      <span>{data.customer.name || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">手机号：</span>
+                      <span>{data.customer.phone || "-"}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">备注：</span>
+                      <span>{data.customer.note || "-"}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <div className="text-sm font-medium mb-2">已添加的助教标签</div>
-                  <div className="space-y-2">
-                    {coachTags.map((t) => (
-                      <div
-                        key={t.id}
-                        className="flex items-center justify-between border rounded px-3 py-2"
+                {/* 标签管理 */}
+                <div className="bg-white rounded-lg shadow-lg p-6">
+                  <h2 className="text-lg font-semibold mb-3">标签</h2>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {displayAllTags.map((t) => (
+                      <span
+                        key={t.tag}
+                        title={t.explanationCn}
+                        className={`text-xs border rounded px-2 py-1 ${
+                          t.kind === "coach"
+                            ? "bg-green-50 border-green-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
                       >
-                        <div className="text-sm">
-                          {getDisplayTag(t.tagKey)?.labelCn ?? "助教标记"}
-                        </div>
-                        <button
-                          onClick={() => void deleteTag(t.tagKey)}
-                          className="text-sm px-3 py-1 rounded bg-gray-200 hover:bg-gray-300"
-                        >
-                          删除
-                        </button>
-                      </div>
+                        {t.labelCn}
+                      </span>
                     ))}
-                    {!coachTags.length ? (
-                      <p className="text-sm text-gray-500">暂无助教标签</p>
-                    ) : null}
+                    {!displayAllTags.length && (
+                      <span className="text-sm text-gray-400">无</span>
+                    )}
                   </div>
+
+                  <div className="space-y-2">
+                    <div className="text-sm font-medium">添加助教标签</div>
+                    <div className="flex gap-2">
+                      <input
+                        value={newTag}
+                        onChange={(e) => setNewTag(e.target.value)}
+                        placeholder="coach:high_value"
+                        className="border rounded px-3 py-2 flex-1 text-sm"
+                      />
+                      <button
+                        onClick={() => void addTag()}
+                        disabled={tagSubmitting || !newTag.trim()}
+                        className="px-3 py-2 rounded bg-blue-600 text-white text-sm disabled:opacity-50"
+                      >
+                        添加
+                      </button>
+                    </div>
+                  </div>
+
+                  {coachTags.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-sm font-medium mb-2">已添加</div>
+                      <div className="space-y-2">
+                        {coachTags.map((t) => (
+                          <div
+                            key={t.id}
+                            className="flex items-center justify-between border rounded px-3 py-2"
+                          >
+                            <div className="text-sm">
+                              {getDisplayTag(t.tagKey)?.labelCn ?? t.tagKey}
+                            </div>
+                            <button
+                              onClick={() => void deleteTag(t.tagKey)}
+                              className="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300"
+                            >
+                              删除
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

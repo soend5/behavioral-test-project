@@ -23,6 +23,7 @@ const UpdateScriptSchema = z.object({
   content: z.string().min(1).max(2000).optional(),
   variables: z.array(z.string()).nullable().optional(),
   status: z.enum(["active", "inactive"]).optional(),
+  sopId: z.string().nullable().optional(), // v2.0: 关联 SOP
 });
 
 export async function PATCH(
@@ -50,7 +51,7 @@ export async function PATCH(
       return fail(ErrorCode.INVALID_INPUT, parsed.error.errors[0]?.message || "参数错误", 400);
     }
 
-    const { name, category, triggerStage, triggerArchetype, triggerTags, content, variables, status } = parsed.data;
+    const { name, category, triggerStage, triggerArchetype, triggerTags, content, variables, status, sopId } = parsed.data;
 
     const script = await prisma.scriptTemplate.update({
       where: { id },
@@ -63,6 +64,7 @@ export async function PATCH(
         ...(content !== undefined && { content }),
         ...(variables !== undefined && { variablesJson: variables ? JSON.stringify(variables) : null }),
         ...(status !== undefined && { status }),
+        ...(sopId !== undefined && { sopId }), // v2.0: 关联 SOP
       },
     });
 
@@ -79,6 +81,7 @@ export async function PATCH(
         content: script.content,
         variables: script.variablesJson ? JSON.parse(script.variablesJson) : [],
         status: script.status,
+        sopId: script.sopId, // v2.0
         usageCount: script.usageCount,
         createdAt: script.createdAt.toISOString(),
         updatedAt: script.updatedAt.toISOString(),

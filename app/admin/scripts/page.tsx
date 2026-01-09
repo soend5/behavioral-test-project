@@ -238,9 +238,9 @@ export default function AdminScriptsPage() {
     <div className="min-h-screen bg-gray-50">
       <AdminNav />
       <div className="max-w-7xl mx-auto p-4">
-        <h1 className="text-2xl font-bold mb-1">话术库管理</h1>
+        <h1 className="text-2xl font-bold mb-1">沟通话术库</h1>
         <p className="text-sm text-gray-600 mb-4">
-          管理助教话术模板，支持按阶段、画像、标签智能匹配推荐。
+          管理助教话术模板，支持按阶段、画像、适用场景智能匹配推荐。
         </p>
 
         {error && (
@@ -458,7 +458,7 @@ export default function AdminScriptsPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
-                    <div className="text-sm font-medium mb-1">触发标签（每行一个）</div>
+                    <div className="text-sm font-medium mb-1">适用场景（每行一个）</div>
                     <textarea
                       value={draft.triggerTags || ""}
                       onChange={(e) => setDraft((p) => ({ ...p, triggerTags: e.target.value }))}

@@ -52,7 +52,7 @@ export function TodoPanel() {
   const [loading, setLoading] = useState(true);
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [summary, setSummary] = useState<TodoSummary | null>(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // v1.9: 默认展开
 
   const load = useCallback(async () => {
     try {

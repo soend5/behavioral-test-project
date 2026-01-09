@@ -83,6 +83,9 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get("query") || "";
     const status = searchParams.get("status") || "";
     const segment = searchParams.get("segment") || ""; // v1.7: 分层筛选
+    const archetype = searchParams.get("archetype") || ""; // v2.1: 画像筛选
+    const stage = searchParams.get("stage") || ""; // v2.1: 阶段筛选
+    const activity = searchParams.get("activity") || ""; // v2.1: 活动时间筛选
 
     const skip = (page - 1) * limit;
 
@@ -107,7 +110,27 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // 获取客户列表（使用 _count 优化查询，避免 N+1）
+    // v2.1: 活动时间筛选
+    if (activity) {
+      const now = new Date();
+      let activityDate: Date | null = null;
+      
+      if (activity === "7d") {
+        activityDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (activity === "14d") {
+        activityDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+      } else if (activity === "30d") {
+        activityDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      }
+      
+      if (activityDate && activity !== "older") {
+        where.updatedAt = { gte: activityDate };
+      } else if (activity === "older") {
+        where.updatedAt = { lt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+      }
+    }
+
+    // 获取客户列表
     const [customers, total] = await Promise.all([
       prisma.customer.findMany({
         where,
@@ -119,6 +142,7 @@ export async function GET(request: NextRequest) {
           name: true,
           nickname: true,
           phone: true,
+          updatedAt: true,
           _count: {
             select: {
               attempts: {
@@ -133,6 +157,8 @@ export async function GET(request: NextRequest) {
             select: {
               id: true,
               submittedAt: true,
+              stage: true,
+              resultSummaryJson: true,
             },
           },
           segments: {
@@ -151,21 +177,67 @@ export async function GET(request: NextRequest) {
       filteredCustomers = customers.filter((c) => c._count.attempts === 0);
     }
 
+    // v2.1: 画像筛选
+    if (archetype) {
+      filteredCustomers = filteredCustomers.filter((c) => {
+        if (!c.attempts[0]?.resultSummaryJson) return false;
+        try {
+          const summary = JSON.parse(c.attempts[0].resultSummaryJson);
+          return summary.archetype === archetype;
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    // v2.1: 阶段筛选
+    if (stage) {
+      filteredCustomers = filteredCustomers.filter((c) => {
+        return c.attempts[0]?.stage === stage;
+      });
+    }
+
+    // v2.1: 判断高风险
+    const isHighRisk = (c: typeof customers[0]) => {
+      const segments = c.segments?.map((s) => s.segment) || [];
+      if (segments.includes("needs_attention")) return true;
+      
+      // 超过14天无更新
+      const daysSinceUpdate = (Date.now() - new Date(c.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceUpdate > 14) return true;
+      
+      return false;
+    };
+
     return ok({
-      customers: filteredCustomers.map((c) => ({
-        id: c.id,
-        name: c.name,
-        nickname: c.nickname,
-        phone: c.phone,
-        latestAttempt: c.attempts[0]
-          ? {
-              id: c.attempts[0].id,
-              submittedAt: c.attempts[0].submittedAt,
-              status: "completed",
-            }
-          : null,
-        segments: c.segments?.map((s) => s.segment) || [], // v1.7: 返回分层标签
-      })),
+      customers: filteredCustomers.map((c) => {
+        let archetypeValue: string | null = null;
+        try {
+          if (c.attempts[0]?.resultSummaryJson) {
+            const summary = JSON.parse(c.attempts[0].resultSummaryJson);
+            archetypeValue = summary.archetype || null;
+          }
+        } catch {}
+
+        return {
+          id: c.id,
+          name: c.name,
+          nickname: c.nickname,
+          phone: c.phone,
+          latestAttempt: c.attempts[0]
+            ? {
+                id: c.attempts[0].id,
+                submittedAt: c.attempts[0].submittedAt,
+                status: "completed",
+                stage: c.attempts[0].stage,
+                archetype: archetypeValue,
+              }
+            : null,
+          segments: c.segments?.map((s) => s.segment) || [],
+          isHighRisk: isHighRisk(c), // v2.1: 高风险标记
+          updatedAt: c.updatedAt.toISOString(),
+        };
+      }),
       total: filteredCustomers.length,
       page,
       limit,

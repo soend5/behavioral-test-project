@@ -21,6 +21,179 @@ type Session = {
   };
 };
 
+// ============================================
+// 5级角色体系
+// ============================================
+
+/**
+ * 角色定义
+ * super_admin: 全部权限
+ * content_admin: 内容管理（题库/画像/内训/方法论）
+ * strategy_admin: 策略管理（SOP/话术/训练）
+ * coach_manager: 查看所有助教数据 + 分配客户
+ * coach: 仅自己的客户
+ */
+export type RoleType = 
+  | "super_admin" 
+  | "content_admin" 
+  | "strategy_admin" 
+  | "coach_manager" 
+  | "coach"
+  | "admin";  // 兼容旧角色
+
+/**
+ * 权限定义
+ */
+export type Permission = 
+  // 内容管理
+  | "content:read"
+  | "content:write"
+  | "questions:manage"
+  | "archetypes:manage"
+  | "training:manage"
+  | "methodology:manage"
+  // 策略管理
+  | "strategy:read"
+  | "strategy:write"
+  | "sop:manage"
+  | "scripts:manage"
+  | "tags:manage"
+  // 客户管理
+  | "customers:read_all"
+  | "customers:read_own"
+  | "customers:assign"
+  | "customers:write"
+  // 系统管理
+  | "config:manage"
+  | "users:manage"
+  | "system:admin";
+
+/**
+ * 角色权限映射
+ */
+const ROLE_PERMISSIONS: Record<RoleType, Permission[]> = {
+  super_admin: [
+    "content:read", "content:write", "questions:manage", "archetypes:manage",
+    "training:manage", "methodology:manage", "strategy:read", "strategy:write",
+    "sop:manage", "scripts:manage", "tags:manage", "customers:read_all",
+    "customers:read_own", "customers:assign", "customers:write",
+    "config:manage", "users:manage", "system:admin"
+  ],
+  content_admin: [
+    "content:read", "content:write", "questions:manage", "archetypes:manage",
+    "training:manage", "methodology:manage", "strategy:read"
+  ],
+  strategy_admin: [
+    "strategy:read", "strategy:write", "sop:manage", "scripts:manage",
+    "tags:manage", "content:read"
+  ],
+  coach_manager: [
+    "customers:read_all", "customers:assign", "customers:write",
+    "content:read", "strategy:read"
+  ],
+  coach: [
+    "customers:read_own", "customers:write", "content:read", "strategy:read"
+  ],
+  // 兼容旧 admin 角色 = super_admin
+  admin: [
+    "content:read", "content:write", "questions:manage", "archetypes:manage",
+    "training:manage", "methodology:manage", "strategy:read", "strategy:write",
+    "sop:manage", "scripts:manage", "tags:manage", "customers:read_all",
+    "customers:read_own", "customers:assign", "customers:write",
+    "config:manage", "users:manage", "system:admin"
+  ]
+};
+
+/**
+ * 角色层级（数字越大权限越高）
+ */
+const ROLE_HIERARCHY: Record<RoleType, number> = {
+  coach: 1,
+  coach_manager: 2,
+  strategy_admin: 3,
+  content_admin: 3,
+  admin: 5,
+  super_admin: 5
+};
+
+/**
+ * 检查角色是否拥有指定权限
+ */
+export function hasPermission(role: string, permission: Permission): boolean {
+  const permissions = ROLE_PERMISSIONS[role as RoleType];
+  if (!permissions) return false;
+  return permissions.includes(permission);
+}
+
+/**
+ * 检查角色是否拥有所有指定权限
+ */
+export function hasAllPermissions(role: string, permissions: Permission[]): boolean {
+  return permissions.every(p => hasPermission(role, p));
+}
+
+/**
+ * 检查角色是否拥有任一指定权限
+ */
+export function hasAnyPermission(role: string, permissions: Permission[]): boolean {
+  return permissions.some(p => hasPermission(role, p));
+}
+
+/**
+ * 获取角色的所有权限
+ */
+export function getRolePermissions(role: string): Permission[] {
+  return ROLE_PERMISSIONS[role as RoleType] || [];
+}
+
+/**
+ * 检查角色层级是否足够
+ */
+export function hasRoleLevel(role: string, minLevel: number): boolean {
+  const level = ROLE_HIERARCHY[role as RoleType];
+  return level !== undefined && level >= minLevel;
+}
+
+/**
+ * 是否为管理员级别（content_admin, strategy_admin, admin, super_admin）
+ */
+export function isAdminLevel(role: string): boolean {
+  return hasRoleLevel(role, 3);
+}
+
+/**
+ * 要求特定权限
+ */
+export async function requirePermission(permission: Permission): Promise<Session> {
+  const session = await requireAuth();
+  if (!hasPermission(session.user.role, permission)) {
+    throw new Error(ErrorCode.FORBIDDEN);
+  }
+  return session;
+}
+
+/**
+ * 要求所有指定权限
+ */
+export async function requireAllPermissions(permissions: Permission[]): Promise<Session> {
+  const session = await requireAuth();
+  if (!hasAllPermissions(session.user.role, permissions)) {
+    throw new Error(ErrorCode.FORBIDDEN);
+  }
+  return session;
+}
+
+/**
+ * 要求任一指定权限
+ */
+export async function requireAnyPermission(permissions: Permission[]): Promise<Session> {
+  const session = await requireAuth();
+  if (!hasAnyPermission(session.user.role, permissions)) {
+    throw new Error(ErrorCode.FORBIDDEN);
+  }
+  return session;
+}
+
 /**
  * 获取会话（可为 null）
  */

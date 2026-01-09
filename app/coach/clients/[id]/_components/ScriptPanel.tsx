@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { csrfFetch } from "@/lib/csrf-client";
+import { COMPLIANCE_NOTICES } from "@/lib/ui-copy";
 
 type Script = {
   id: string;
@@ -68,7 +69,7 @@ export function ScriptPanel({ customerId, customerName, archetype }: Props) {
       setCopied(script.id);
       setTimeout(() => setCopied(null), 2000);
 
-      // Record usage
+      // Record usage - v1.9: 自动记录使用日志
       await csrfFetch(`/api/coach/scripts/${script.id}/use`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -89,8 +90,18 @@ export function ScriptPanel({ customerId, customerName, archetype }: Props) {
   const recommended = scripts.filter((s) => s.relevanceScore > 0).slice(0, 3);
 
   return (
-    <div className="bg-white rounded-lg shadow p-4">
-      <h3 className="font-semibold mb-3">💬 推荐话术</h3>
+    <div className="bg-white rounded-lg shadow-lg p-4 border-2 border-blue-100">
+      {/* v1.9: 智能推荐标识 */}
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold">💬 一键话术</h3>
+        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+          ✨ 智能推荐
+        </span>
+      </div>
+      {/* v1.9: 合规提示 */}
+      <div className="text-xs text-gray-500 mb-3 pb-2 border-b border-gray-100">
+        {COMPLIANCE_NOTICES.coach_panel}
+      </div>
 
       {loading ? (
         <div className="text-sm text-gray-500">加载中...</div>
