@@ -1,5 +1,5 @@
 /**
- * CSRF 保护工具
+ * CSRF 保护工具 (Edge Runtime 兼容)
  * 
  * 实现双重提交 Cookie 模式：
  * 1. 服务端生成 CSRF token 并设置到 cookie
@@ -7,7 +7,6 @@
  * 3. 服务端验证 cookie 和 header 中的 token 是否一致
  */
 
-import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
 const CSRF_COOKIE_NAME = "csrf_token";
@@ -15,10 +14,12 @@ const CSRF_HEADER_NAME = "x-csrf-token";
 const CSRF_TOKEN_LENGTH = 32;
 
 /**
- * 生成 CSRF token
+ * 生成 CSRF token (Edge Runtime 兼容)
  */
 export function generateCsrfToken(): string {
-  return crypto.randomBytes(CSRF_TOKEN_LENGTH).toString("hex");
+  const array = new Uint8Array(CSRF_TOKEN_LENGTH);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /**
@@ -52,17 +53,18 @@ export function validateCsrfToken(request: NextRequest): boolean {
 }
 
 /**
- * 时间安全的字符串比较
+ * 时间安全的字符串比较 (Edge Runtime 兼容)
  */
 function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
 
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-
-  return crypto.timingSafeEqual(bufA, bufB);
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
 }
 
 /**
