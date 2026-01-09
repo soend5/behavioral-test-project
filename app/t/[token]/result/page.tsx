@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDisplayTag, pickHighlightBehaviorTags } from "@/lib/tag-display";
-import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
+import { COMPLIANCE_NOTICE_CN, RESULT_PAGE_COPY } from "@/lib/ui-copy";
 
 type ApiOk<T> = { ok: true; data: T };
 type ApiFail = { ok: false; error: { code: string; message: string } };
 type ApiResponse<T> = ApiOk<T> | ApiFail;
+
+type DimensionLevel = "high" | "medium" | "low";
 
 type ResultData = {
   attempt: {
@@ -18,13 +20,42 @@ type ResultData = {
     stage: string | null;
     resultSummary: unknown;
   };
+  archetype: {
+    key: string;
+    titleCn: string;
+    oneLinerCn: string;
+    traitsCn: string[];
+  } | null;
+  dimensions: Record<string, DimensionLevel | null>;
+  coach: {
+    id: string;
+    username: string;
+    name: string | null;
+    wechatQrcode: string | null;
+  } | null;
+};
+
+// 维度显示配置
+const DIMENSION_DISPLAY: Record<string, { label: string; icon: string }> = {
+  rule: { label: "规则依赖", icon: "📏" },
+  risk: { label: "风险防御", icon: "🛡️" },
+  emotion: { label: "情绪介入", icon: "💭" },
+  consistency: { label: "行动一致性", icon: "🎯" },
+  opportunity: { label: "机会敏感", icon: "🔍" },
+  experience: { label: "经验依赖", icon: "📚" },
+};
+
+const LEVEL_DISPLAY: Record<DimensionLevel, { label: string; color: string }> = {
+  high: { label: "偏高", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  medium: { label: "中等", color: "bg-gray-100 text-gray-700 border-gray-200" },
+  low: { label: "偏低", color: "bg-amber-100 text-amber-800 border-amber-200" },
 };
 
 export default function ResultPage({ params }: { params: { token: string } }) {
   const token = params.token;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<ResultData["attempt"] | null>(null);
+  const [data, setData] = useState<ResultData | null>(null);
 
   useEffect(() => {
     async function run() {
@@ -41,7 +72,7 @@ export default function ResultPage({ params }: { params: { token: string } }) {
           setData(null);
           return;
         }
-        setData(json.data.attempt);
+        setData(json.data);
       } catch {
         setError("加载失败，请稍后重试");
         setData(null);
@@ -52,10 +83,22 @@ export default function ResultPage({ params }: { params: { token: string } }) {
     void run();
   }, [token]);
 
-  const archetypeTag = data?.tags.map(getDisplayTag).find((t) => t?.kind === "archetype") ?? null;
-  const stabilityTag = data?.tags.map(getDisplayTag).find((t) => t?.kind === "stability") ?? null;
-  const highlights = data ? pickHighlightBehaviorTags(data.tags, { max: 2 }) : [];
-  const archetypeShortLabel = archetypeTag?.labelCn.replace("推进方式：", "") ?? null;
+  const attempt = data?.attempt;
+  const archetype = data?.archetype;
+  const dimensions = data?.dimensions;
+  const coach = data?.coach;
+
+  const archetypeTag = attempt?.tags.map(getDisplayTag).find((t) => t?.kind === "archetype") ?? null;
+  const stabilityTag = attempt?.tags.map(getDisplayTag).find((t) => t?.kind === "stability") ?? null;
+  const highlights = attempt ? pickHighlightBehaviorTags(attempt.tags, { max: 2 }) : [];
+
+  // 生成个性化摘要
+  const getSummaryText = () => {
+    if (!archetype) {
+      return "本次回答呈现出一定的推进偏好与节奏信号。";
+    }
+    return `本次回答更接近「${archetype.titleCn}」这类推进方式。`;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -84,25 +127,61 @@ export default function ResultPage({ params }: { params: { token: string } }) {
           </div>
         ) : null}
 
-        {data ? (
+        {data && attempt ? (
           <div className="space-y-6">
+            {/* Section A: 一句话摘要 + 原型信息 */}
             <section className="border rounded p-5">
-              <div className="text-sm text-gray-500 mb-2">A) 一句话摘要</div>
-              <div className="text-gray-900 leading-relaxed">
-                <p>这份结果是你在推进不确定事情时的一次节奏快照。</p>
-                <p>
-                  {archetypeShortLabel
-                    ? `本次回答更接近「${archetypeShortLabel}」这类推进方式。`
-                    : "本次回答呈现出一定的推进偏好与节奏信号。"}
-                </p>
-                <p>
-                  {stabilityTag?.explanationCn ?? "下面选取 1–2 个更显著的行为点，方便你和助教快速对齐。"}
-                </p>
+              <div className="text-sm text-gray-500 mb-2">A) {RESULT_PAGE_COPY.summaryTitle}</div>
+              <div className="text-gray-900 leading-relaxed space-y-2">
+                <p>{RESULT_PAGE_COPY.summaryIntro}</p>
+                <p className="font-medium">{getSummaryText()}</p>
+                {archetype && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded">
+                    <div className="text-blue-900 italic">"{archetype.oneLinerCn}"</div>
+                    {archetype.traitsCn.length > 0 && (
+                      <ul className="mt-2 text-sm text-blue-800 space-y-1">
+                        {archetype.traitsCn.slice(0, 2).map((trait, i) => (
+                          <li key={i}>• {trait}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                {stabilityTag && (
+                  <p className="text-sm text-gray-600 mt-2">{stabilityTag.explanationCn}</p>
+                )}
               </div>
             </section>
 
+            {/* Section B: 行为维度 */}
+            {dimensions && Object.values(dimensions).some((v) => v !== null) && (
+              <section className="border rounded p-5">
+                <div className="text-sm text-gray-500 mb-3">B) {RESULT_PAGE_COPY.dimensionsTitle}</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {Object.entries(DIMENSION_DISPLAY).map(([key, config]) => {
+                    const level = dimensions[key];
+                    if (!level) return null;
+                    const levelConfig = LEVEL_DISPLAY[level];
+                    return (
+                      <div
+                        key={key}
+                        className={`p-3 rounded border ${levelConfig.color}`}
+                      >
+                        <div className="flex items-center gap-1 text-sm font-medium">
+                          <span>{config.icon}</span>
+                          <span>{config.label}</span>
+                        </div>
+                        <div className="text-xs mt-1">{levelConfig.label}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Section C: 显著行为特征 */}
             <section className="border rounded p-5">
-              <div className="text-sm text-gray-500 mb-3">B) 显著行为特征</div>
+              <div className="text-sm text-gray-500 mb-3">C) {RESULT_PAGE_COPY.highlightsTitle}</div>
               {highlights.length ? (
                 <ul className="space-y-3">
                   {highlights.map((t) => (
@@ -114,15 +193,16 @@ export default function ResultPage({ params }: { params: { token: string } }) {
                 </ul>
               ) : (
                 <div className="text-sm text-gray-700">
-                  暂无可展示的行为点。你可以先完成测评，或联系助教协助核对状态。
+                  {RESULT_PAGE_COPY.noHighlights}
                 </div>
               )}
             </section>
 
+            {/* Section D: 下一步建议 */}
             <section className="border rounded p-5 bg-blue-50 border-blue-200">
-              <div className="text-sm text-blue-700 mb-2">C) 下一步建议</div>
+              <div className="text-sm text-blue-700 mb-2">D) {RESULT_PAGE_COPY.nextStepTitle}</div>
               <div className="text-blue-900 mb-4">
-                请联系助教，把这份概览作为沟通起点，获得更具体的下一步推进建议。
+                {RESULT_PAGE_COPY.nextStepContent}
               </div>
               <div className="flex flex-wrap gap-3">
                 <Link
@@ -136,10 +216,35 @@ export default function ResultPage({ params }: { params: { token: string } }) {
                 {COMPLIANCE_NOTICE_CN}
               </div>
             </section>
+
+            {/* Section E: 联系助教 (如有二维码) */}
+            {coach && (coach.wechatQrcode || coach.name) && (
+              <section className="border rounded p-5">
+                <div className="text-sm text-gray-500 mb-3">E) {RESULT_PAGE_COPY.contactCoachTitle}</div>
+                <div className="flex flex-col md:flex-row items-start gap-4">
+                  <div className="flex-1">
+                    <div className="font-medium text-gray-900">
+                      {coach.name || coach.username}
+                    </div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      扫描二维码添加助教微信，获取更具体的陪跑建议。
+                    </div>
+                  </div>
+                  {coach.wechatQrcode && (
+                    <div className="flex-shrink-0">
+                      <img
+                        src={coach.wechatQrcode}
+                        alt="助教微信二维码"
+                        className="w-32 h-32 rounded border"
+                      />
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         ) : null}
       </div>
     </div>
   );
 }
-

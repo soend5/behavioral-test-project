@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
         coach: {
           id: invite.coach.id,
           username: invite.coach.username,
+          name: invite.coach.name,
         },
         version: invite.version,
         quizVersion: invite.quizVersion,

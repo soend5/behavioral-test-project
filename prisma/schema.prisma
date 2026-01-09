@@ -19,6 +19,8 @@ model User {
   username      String   @unique
   passwordHash  String   @map("password_hash")
   status        String   @default("active") // 'active' | 'inactive'
+  name          String?  // 助教显示名称
+  wechatQrcode  String?  @map("wechat_qrcode") // 微信二维码图片 URL
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

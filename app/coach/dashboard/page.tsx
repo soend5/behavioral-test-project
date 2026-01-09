@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { CoachNav } from "../_components/CoachNav";
+import { TodoPanel } from "../_components/TodoPanel";
 
 type Customer = {
   id: string;
@@ -90,6 +91,9 @@ export default function CoachDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <CoachNav />
       <div className="max-w-7xl mx-auto p-4">
+        {/* V1.3: 待办面板 */}
+        <TodoPanel />
+
         <h1 className="text-2xl font-bold mb-1">参与者档案</h1>
         <p className="text-sm text-gray-600 mb-4">
           用于管理参与者基本信息、测评状态与陪跑记录。

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, useMemo, type FormEvent } from "react";
 import { AdminNav } from "../_components/AdminNav";
 
 export default function AdminQuizPage() {
@@ -15,6 +15,11 @@ export default function AdminQuizPage() {
     createdAt: string;
   };
 
+  type SettingsData = {
+    inviteDefaultQuizVersion: string;
+    availableQuizVersions: string[];
+  };
+
   type ApiOk<T> = { ok: true; data: T };
   type ApiFail = { ok: false; error: { code: string; message: string } };
   type ApiResponse<T> = ApiOk<T> | ApiFail;
@@ -22,6 +27,11 @@ export default function AdminQuizPage() {
   const [quizzes, setQuizzes] = useState<QuizRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 默认版本配置状态
+  const [settingsData, setSettingsData] = useState<SettingsData | null>(null);
+  const [defaultQuizVersion, setDefaultQuizVersion] = useState("v1");
+  const [savingSettings, setSavingSettings] = useState(false);
 
   const [creating, setCreating] = useState(false);
   const [newVersion, setNewVersion] = useState<"fast" | "pro">("fast");
@@ -37,18 +47,35 @@ export default function AdminQuizPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
+  const availableVersions = useMemo(
+    () => settingsData?.availableQuizVersions || [],
+    [settingsData]
+  );
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/quiz", { cache: "no-store" });
-      const json = (await res.json()) as ApiResponse<{ quizzes: QuizRow[] }>;
-      if (!json.ok) {
-        setError(json.error.message);
+      // 并行加载题库列表和设置
+      const [quizRes, settingsRes] = await Promise.all([
+        fetch("/api/admin/quiz", { cache: "no-store" }),
+        fetch("/api/admin/settings", { cache: "no-store" }),
+      ]);
+
+      const quizJson = (await quizRes.json()) as ApiResponse<{ quizzes: QuizRow[] }>;
+      const settingsJson = (await settingsRes.json()) as ApiResponse<SettingsData>;
+
+      if (!quizJson.ok) {
+        setError(quizJson.error.message);
         setQuizzes([]);
-        return;
+      } else {
+        setQuizzes(Array.isArray(quizJson.data.quizzes) ? quizJson.data.quizzes : []);
       }
-      setQuizzes(Array.isArray(json.data.quizzes) ? json.data.quizzes : []);
+
+      if (settingsJson.ok) {
+        setSettingsData(settingsJson.data);
+        setDefaultQuizVersion(settingsJson.data.inviteDefaultQuizVersion || "v1");
+      }
     } catch {
       setError("加载失败");
       setQuizzes([]);
@@ -60,6 +87,28 @@ export default function AdminQuizPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function saveDefaultVersion() {
+    setSavingSettings(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ inviteDefaultQuizVersion: defaultQuizVersion }),
+      });
+      const json = (await res.json()) as ApiResponse<{ updatedAt: string }>;
+      if (!json.ok) {
+        setError(json.error.message);
+        return;
+      }
+      await load();
+    } catch {
+      setError("保存失败");
+    } finally {
+      setSavingSettings(false);
+    }
+  }
 
   function startEdit(q: QuizRow) {
     setEditingId(q.id);
@@ -174,6 +223,49 @@ export default function AdminQuizPage() {
           </div>
         ) : null}
 
+        {/* V1.3: 默认题库版本配置 */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <div className="font-medium text-blue-900 mb-1">
+                助教创建邀请：默认题库版本
+              </div>
+              <div className="text-xs text-blue-700 mb-2">
+                该配置会作为助教端「新建邀请」的默认值
+              </div>
+              {availableVersions.length ? (
+                <select
+                  value={defaultQuizVersion}
+                  onChange={(e) => setDefaultQuizVersion(e.target.value)}
+                  className="border rounded px-3 py-2 w-full max-w-xs bg-white"
+                  disabled={savingSettings}
+                >
+                  {availableVersions.map((v) => (
+                    <option key={v} value={v}>
+                      {v}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  value={defaultQuizVersion}
+                  onChange={(e) => setDefaultQuizVersion(e.target.value)}
+                  className="border rounded px-3 py-2 w-full max-w-xs"
+                  placeholder="例如 v1"
+                  disabled={savingSettings}
+                />
+              )}
+            </div>
+            <button
+              onClick={() => void saveDefaultVersion()}
+              disabled={savingSettings || !defaultQuizVersion.trim()}
+              className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+            >
+              {savingSettings ? "保存中..." : "保存设置"}
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="font-semibold mb-3">新建题库</div>
           <form onSubmit={createQuiz} className="flex flex-wrap gap-3 items-end">
@@ -245,11 +337,19 @@ export default function AdminQuizPage() {
             <tbody>
               {quizzes.map((q) => {
                 const isEditing = editingId === q.id;
+                const isDefault = q.quizVersion === defaultQuizVersion;
                 return (
-                  <tr key={q.id} className="border-b">
+                  <tr key={q.id} className={`border-b ${isDefault ? "bg-blue-50/50" : ""}`}>
                     <td className="py-2 pr-2">{q.version}</td>
                     <td className="py-2 pr-2">
-                      <div className="font-medium">{q.quizVersion}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{q.quizVersion}</span>
+                        {isDefault && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200">
+                            默认
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-gray-500">{q.id}</div>
                     </td>
                     <td className="py-2 pr-2">
@@ -351,4 +451,3 @@ export default function AdminQuizPage() {
     </div>
   );
 }
-

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { AdminNav } from "../_components/AdminNav";
 
 type ApiOk<T> = { ok: true; data: T };
@@ -14,13 +15,8 @@ type SettingsData = {
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const [data, setData] = useState<SettingsData | null>(null);
-  const [inviteDefaultQuizVersion, setInviteDefaultQuizVersion] = useState("v1");
-
-  const options = useMemo(() => data?.availableQuizVersions || [], [data]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -34,7 +30,6 @@ export default function AdminSettingsPage() {
         return;
       }
       setData(json.data);
-      setInviteDefaultQuizVersion(json.data.inviteDefaultQuizVersion || "v1");
     } catch {
       setError("加载失败");
       setData(null);
@@ -46,28 +41,6 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     void load();
   }, [load]);
-
-  async function save() {
-    setSaving(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ inviteDefaultQuizVersion }),
-      });
-      const json = (await res.json()) as ApiResponse<{ updatedAt: string }>;
-      if (!json.ok) {
-        setError(json.error.message);
-        return;
-      }
-      await load();
-    } catch {
-      setError("保存失败");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -89,50 +62,37 @@ export default function AdminSettingsPage() {
         {loading ? (
           <div className="bg-white rounded-lg shadow p-6">加载中...</div>
         ) : (
-          <div className="bg-white rounded-lg shadow p-6 space-y-4">
-            <div className="font-semibold">助教创建邀请：默认题库版本（quizVersion）</div>
-            <div className="text-sm text-gray-600">
-              该配置会作为助教端「新建邀请」的默认值。实际创建时仍会校验题库是否存在且为 active。
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-              <div>
-                <div className="text-xs text-gray-500 mb-1">默认 quizVersion</div>
-                {options.length ? (
-                  <select
-                    value={inviteDefaultQuizVersion}
-                    onChange={(e) => setInviteDefaultQuizVersion(e.target.value)}
-                    className="border rounded px-3 py-2 w-full bg-white"
-                    disabled={saving}
-                  >
-                    {options.map((v) => (
-                      <option key={v} value={v}>
-                        {v}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <input
-                    value={inviteDefaultQuizVersion}
-                    onChange={(e) => setInviteDefaultQuizVersion(e.target.value)}
-                    className="border rounded px-3 py-2 w-full"
-                    placeholder="例如 v1"
-                    disabled={saving}
-                  />
-                )}
+          <div className="space-y-6">
+            {/* 题库版本配置 - 只读展示 + 跳转链接 */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="font-semibold mb-1">助教创建邀请：默认题库版本</div>
+                  <div className="text-sm text-gray-600 mb-3">
+                    该配置已移至「题库管理」页面，方便与题库一起管理。
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-500">当前默认版本：</span>
+                    <span className="px-2 py-1 rounded bg-blue-100 text-blue-800 font-medium">
+                      {data?.inviteDefaultQuizVersion || "v1"}
+                    </span>
+                  </div>
+                </div>
+                <Link
+                  href="/admin/quiz"
+                  className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  前往题库管理
+                </Link>
               </div>
-              <button
-                onClick={() => void save()}
-                disabled={saving || !inviteDefaultQuizVersion.trim()}
-                className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
-              >
-                {saving ? "保存中..." : "保存设置"}
-              </button>
             </div>
 
-            <div className="text-xs text-gray-500">
-              当前可选项来自题库表的 quizVersion 去重结果；仅允许设置为同时存在 fast/pro 且为 active
-              的 quizVersion。
+            {/* 其他设置占位 */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <div className="font-semibold mb-3">其他设置</div>
+              <div className="text-sm text-gray-500">
+                更多系统配置项将在后续版本中添加。
+              </div>
             </div>
           </div>
         )}
@@ -140,4 +100,3 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
-
