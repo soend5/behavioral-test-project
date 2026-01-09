@@ -11,6 +11,9 @@ import { requireAdmin } from "@/lib/authz";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
 
+// 禁用静态渲染
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     await requireAdmin();
