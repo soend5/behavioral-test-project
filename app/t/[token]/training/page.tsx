@@ -95,6 +95,7 @@ export default function TrainingPage({
 
   useEffect(() => {
     void fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   async function handleEnroll(planId: string) {
