@@ -48,10 +48,13 @@ model Customer {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // 关系
-  coach     User     @relation(fields: [coachId], references: [id])
-  invites   Invite[]
-  attempts  Attempt[]
-  coachTags CoachTag[]
+  coach        User          @relation(fields: [coachId], references: [id])
+  invites      Invite[]
+  attempts     Attempt[]
+  coachTags    CoachTag[]
+  followUpLogs FollowUpLog[]
+  segments     CustomerSegment[]
+  enrollments  TrainingEnrollment[]
 
   @@index([coachId])
   @@map("customers")
@@ -371,4 +374,192 @@ model SystemSetting {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
+}
+
+// --- v1.6: 话术库 ---
+model ScriptTemplate {
+  id               String   @id @default(cuid())
+  name             String                              // "首次沟通-规则执行型"
+  category         String                              // "首次沟通" / "跟进" / "转化" / "复测"
+  triggerStage     String?  @map("trigger_stage")      // "pre" / "mid" / "post"
+  triggerArchetype String?  @map("trigger_archetype")  // "rule_executor" 等
+  triggerTagsJson  String?  @map("trigger_tags_json")  // JSON array
+  content          String   @db.Text                   // 话术内容（支持变量 {{customerName}} 等）
+  variablesJson    String?  @map("variables_json")     // JSON array ["customerName", "archetype"]
+  status           String   @default("active")         // "active" / "inactive"
+  usageCount       Int      @default(0) @map("usage_count")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  usageLogs        ScriptUsageLog[]
+
+  @@index([status, category])
+  @@index([triggerStage, triggerArchetype])
+  @@map("script_templates")
+}
+
+model ScriptUsageLog {
+  id         String   @id @default(cuid())
+  scriptId   String   @map("script_id")
+  coachId    String   @map("coach_id")
+  customerId String   @map("customer_id")
+  usedAt     DateTime @default(now()) @map("used_at")
+
+  script     ScriptTemplate @relation(fields: [scriptId], references: [id], onDelete: Cascade)
+
+  @@index([coachId, usedAt])
+  @@index([scriptId])
+  @@map("script_usage_logs")
+}
+
+// --- v1.6: 跟进记录 ---
+model FollowUpLog {
+  id         String    @id @default(cuid())
+  customerId String    @map("customer_id")
+  coachId    String    @map("coach_id")
+  type       String                              // "wechat" / "call" / "note"
+  content    String    @db.Text
+  nextAction String?   @map("next_action")       // 下一步行动
+  nextDate   DateTime? @map("next_date")         // 下次跟进日期
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  customer   Customer  @relation(fields: [customerId], references: [id])
+
+  @@index([customerId, createdAt])
+  @@index([coachId, nextDate])
+  @@map("follow_up_logs")
+}
+
+// --- v1.7: 埋点事件 ---
+model TrackingEvent {
+  id           String   @id @default(cuid())
+  event        String                              // 事件名称
+  sessionId    String?  @map("session_id")         // 会话ID
+  inviteToken  String?  @map("invite_token")       // 邀请token（客户端）
+  userId       String?  @map("user_id")            // 用户ID（助教/管理员）
+  customerId   String?  @map("customer_id")        // 客户ID
+  propertiesJson String? @map("properties_json")   // JSON 附加属性
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([event, createdAt])
+  @@index([sessionId])
+  @@index([inviteToken, event])
+  @@index([userId, event])
+  @@index([customerId, event])
+  @@map("tracking_events")
+}
+
+// --- v1.7: 每日统计快照 ---
+model DailyStats {
+  id                  String   @id @default(cuid())
+  date                DateTime @db.Date              // 统计日期
+  invitesSent         Int      @default(0) @map("invites_sent")
+  landingPageViews    Int      @default(0) @map("landing_page_views")
+  quizStarts          Int      @default(0) @map("quiz_starts")
+  quizCompletes       Int      @default(0) @map("quiz_completes")
+  contactClicks       Int      @default(0) @map("contact_clicks")
+  activeCoaches       Int      @default(0) @map("active_coaches")
+  newCustomers        Int      @default(0) @map("new_customers")
+  followUpLogs        Int      @default(0) @map("follow_up_logs")
+  scriptUsages        Int      @default(0) @map("script_usages")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@unique([date])
+  @@index([date])
+  @@map("daily_stats")
+}
+
+// --- v1.7: 客户分层标签 ---
+model CustomerSegment {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  segment    String                              // "high_potential" / "needs_attention" / "inactive" / "new"
+  score      Int      @default(0)                // 分层得分
+  reason     String?                             // 分层原因
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, segment])
+  @@index([segment])
+  @@index([customerId])
+  @@map("customer_segments")
+}
+
+// --- v1.8: 训练计划 ---
+model TrainingPlan {
+  id           String   @id @default(cuid())
+  name         String                              // "7天行为训练"
+  description  String?  @db.Text
+  durationDays Int      @map("duration_days")      // 7
+  status       String   @default("active")         // "active" / "inactive"
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tasks        TrainingTask[]
+  enrollments  TrainingEnrollment[]
+
+  @@index([status])
+  @@map("training_plans")
+}
+
+model TrainingTask {
+  id               String   @id @default(cuid())
+  planId           String   @map("plan_id")
+  dayNo            Int      @map("day_no")           // 1-7
+  orderNo          Int      @map("order_no")         // 任务顺序
+  type             String                            // "read" / "reflect" / "action"
+  title            String
+  description      String   @db.Text
+  contentJson      String?  @map("content_json")     // JSON 任务内容
+  estimatedMinutes Int      @default(5) @map("estimated_minutes")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  plan             TrainingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  completions      TaskCompletion[]
+
+  @@unique([planId, dayNo, orderNo])
+  @@index([planId, dayNo])
+  @@map("training_tasks")
+}
+
+model TrainingEnrollment {
+  id          String    @id @default(cuid())
+  planId      String    @map("plan_id")
+  customerId  String    @map("customer_id")
+  attemptId   String?   @map("attempt_id")         // 关联的测评
+  startedAt   DateTime  @default(now()) @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  status      String    @default("active")         // "active" / "completed" / "abandoned"
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  plan        TrainingPlan @relation(fields: [planId], references: [id])
+  customer    Customer @relation(fields: [customerId], references: [id])
+  completions TaskCompletion[]
+
+  @@unique([planId, customerId])
+  @@index([customerId, status])
+  @@index([status, startedAt])
+  @@map("training_enrollments")
+}
+
+model TaskCompletion {
+  id           String   @id @default(cuid())
+  enrollmentId String   @map("enrollment_id")
+  taskId       String   @map("task_id")
+  responseJson String?  @map("response_json")      // JSON 用户回答
+  completedAt  DateTime @default(now()) @map("completed_at")
+
+  enrollment   TrainingEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  task         TrainingTask @relation(fields: [taskId], references: [id])
+
+  @@unique([enrollmentId, taskId])
+  @@index([enrollmentId])
+  @@index([taskId])
+  @@map("task_completions")
 }

@@ -82,6 +82,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const query = searchParams.get("query") || "";
     const status = searchParams.get("status") || "";
+    const segment = searchParams.get("segment") || ""; // v1.7: 分层筛选
 
     const skip = (page - 1) * limit;
 
@@ -97,6 +98,13 @@ export async function GET(request: NextRequest) {
         { nickname: { contains: query } },
         { phone: { contains: query } },
       ];
+    }
+
+    // v1.7: 分层筛选
+    if (segment) {
+      where.segments = {
+        some: { segment },
+      };
     }
 
     // 获取客户列表（使用 _count 优化查询，避免 N+1）
@@ -127,6 +135,9 @@ export async function GET(request: NextRequest) {
               submittedAt: true,
             },
           },
+          segments: {
+            select: { segment: true, score: true },
+          },
         },
       }),
       prisma.customer.count({ where }),
@@ -153,6 +164,7 @@ export async function GET(request: NextRequest) {
               status: "completed",
             }
           : null,
+        segments: c.segments?.map((s) => s.segment) || [], // v1.7: 返回分层标签
       })),
       total: filteredCustomers.length,
       page,

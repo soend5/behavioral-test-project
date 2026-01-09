@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
+import { COMPLIANCE_NOTICE_CN, QUIZ_PAGE_COPY } from "@/lib/ui-copy";
 
 type QuizQuestion = {
   id: string;
@@ -14,6 +14,33 @@ type QuizQuestion = {
 type ApiOk<T> = { ok: true; data: T };
 type ApiFail = { ok: false; error: { code: string; message: string } };
 type ApiResponse<T> = ApiOk<T> | ApiFail;
+
+// v1.5: 进度条组件
+function ProgressBar({ current, total }: { current: number; total: number }) {
+  const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+  const estimatedMinutes = Math.max(1, Math.ceil((total - current) * 0.35)); // 每题约20秒
+
+  return (
+    <div className="mb-6">
+      <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <span>{QUIZ_PAGE_COPY.progressText(current, total)}</span>
+        <span>{current < total ? QUIZ_PAGE_COPY.estimatedTime(estimatedMinutes) : "即将完成"}</span>
+      </div>
+      <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div
+          className="h-full bg-blue-600 transition-all duration-300 ease-out"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      {/* 鼓励文案 */}
+      {current > 0 && current < total && percent >= 50 && (
+        <p className="text-xs text-blue-600 mt-2 text-center">
+          {QUIZ_PAGE_COPY.encouragement[Math.min(2, Math.floor(percent / 30))]}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function QuizPage({ params }: { params: { token: string } }) {
   const router = useRouter();
@@ -146,25 +173,25 @@ export default function QuizPage({ params }: { params: { token: string } }) {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-2xl font-bold mb-2">测评题目</h1>
-        <p className="text-sm text-gray-600 mb-6">
-          已完成 {answeredCount}/{totalCount}
-        </p>
+      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6 md:p-8">
+        <h1 className="text-2xl font-bold mb-2">{QUIZ_PAGE_COPY.title}</h1>
+        
+        {/* v1.5: 进度条 */}
+        <ProgressBar current={answeredCount} total={totalCount} />
 
         {error ? (
-          <div className="bg-red-50 border border-red-200 text-red-700 rounded p-3 text-sm mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm mb-6">
             <div>{error}</div>
             <div className="mt-3 flex flex-wrap gap-3">
               <button
                 onClick={() => router.push(`/t/${token}`)}
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-900"
+                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-900 transition-colors"
               >
                 返回邀请页
               </button>
               <button
                 onClick={() => router.push(`/t/${token}/result`)}
-                className="px-4 py-2 rounded bg-blue-600 text-white"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 查看结果概览
               </button>
@@ -175,52 +202,71 @@ export default function QuizPage({ params }: { params: { token: string } }) {
         {questions.length ? (
           <div className="space-y-6">
             {questions.map((q) => (
-              <div key={q.id} className="border rounded p-4">
-                <div className="font-semibold mb-3">
-                  {q.orderNo}. {q.stem}
+              <div key={q.id} className="border rounded-lg p-4 md:p-5">
+                <div className="font-medium mb-4 text-gray-900">
+                  <span className="text-blue-600 mr-2">{q.orderNo}.</span>
+                  {q.stem}
                 </div>
-                <div className="space-y-2">
-                  {q.options.map((opt) => (
-                    <label key={opt.id} className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name={q.id}
-                        value={opt.id}
-                        checked={answers[q.id] === opt.id}
-                        onChange={() =>
-                          setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))
-                        }
-                      />
-                      <span>{opt.text}</span>
-                    </label>
-                  ))}
+                {/* v1.5: 优化选项样式，增大点击区域 */}
+                <div className="space-y-3">
+                  {q.options.map((opt) => {
+                    const isSelected = answers[q.id] === opt.id;
+                    return (
+                      <label
+                        key={opt.id}
+                        className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer transition-all duration-200 min-h-[56px] ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
+                            : "border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={q.id}
+                          value={opt.id}
+                          checked={isSelected}
+                          onChange={() =>
+                            setAnswers((prev) => ({ ...prev, [q.id]: opt.id }))
+                          }
+                          className="mt-0.5 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className={`flex-1 ${isSelected ? "text-blue-900" : "text-gray-700"}`}>
+                          {opt.text}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="border rounded p-4 text-sm text-gray-700">
+          <div className="border rounded-lg p-4 text-sm text-gray-700">
             暂无题目可展示。请返回邀请页确认测评状态，或联系助教重新获取邀请链接。
           </div>
         )}
 
-        <div className="mt-8 flex gap-3">
+        {/* 底部操作区 */}
+        <div className="mt-8 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => router.push(`/t/${token}`)}
-            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+            className="px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
           >
             返回
           </button>
           <button
             onClick={() => void submit()}
             disabled={submitting || !allAnswered}
-            className="px-4 py-2 rounded bg-blue-600 text-white disabled:opacity-50"
+            className="flex-1 px-4 py-3 rounded-lg bg-blue-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors"
           >
-            {submitting ? "提交中..." : "提交测评"}
+            {submitting ? QUIZ_PAGE_COPY.submittingButton : QUIZ_PAGE_COPY.submitButton}
           </button>
         </div>
 
-        <div className="mt-6 text-xs text-gray-500">{COMPLIANCE_NOTICE_CN}</div>
+        {/* v1.5: 合规提示简化 */}
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <p className="text-xs text-gray-400 text-center">{COMPLIANCE_NOTICE_CN}</p>
+        </div>
       </div>
     </div>
   );

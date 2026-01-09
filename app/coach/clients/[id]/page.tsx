@@ -6,6 +6,8 @@ import { CoachNav } from "../../_components/CoachNav";
 import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
 import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
 import { csrfFetch } from "@/lib/csrf-client";
+import { ScriptPanel } from "./_components/ScriptPanel";
+import { FollowUpSection } from "./_components/FollowUpSection";
 
 type CoachTag = { id: string; tagKey: string; createdAt: string };
 type AttemptTimelineItem = {
@@ -350,6 +352,16 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
             </div>
 
             <div className="space-y-6">
+              {/* v1.6: 话术面板 */}
+              <ScriptPanel
+                customerId={customerId}
+                customerName={data.customer.nickname || data.customer.name || undefined}
+                archetype={data.latestAttempt?.resultSummary?.archetype}
+              />
+
+              {/* v1.6: 跟进记录 */}
+              <FollowUpSection customerId={customerId} />
+
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-lg font-semibold mb-3">实时陪跑提示区</h2>
                 <div className="mb-3 rounded border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-900">

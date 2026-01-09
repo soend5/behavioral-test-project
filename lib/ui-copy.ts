@@ -3,8 +3,35 @@ export const PRODUCT_NAME_CN = "交易行为结构测评";
 export const PRODUCT_TAGLINE_CN =
   "用于在推进不确定事项时，辅助对齐推进节奏与下一步沟通。";
 
+// v1.5: 简化合规提示，移至页面底部
 export const COMPLIANCE_NOTICE_CN =
+  "本测评帮你看清操作习惯，不涉及投资建议";
+
+// v1.5: 完整版合规提示（用于需要详细说明的场景）
+export const COMPLIANCE_NOTICE_FULL_CN =
   "提示：本测评及结果用于生成行为结构画像与沟通建议参考，不构成投资顾问服务或任何买卖建议，不承诺收益。";
+
+// v1.5: 落地页文案
+export const LANDING_PAGE_COPY = {
+  title: "3分钟，看清你炒股时最容易在哪一步乱动",
+  subtitle: "完成测评后，你的专属助教会帮你解读结果",
+  startButton: "开始测评",
+  continueButton: "继续测评",
+} as const;
+
+// v1.5: 测评页文案
+export const QUIZ_PAGE_COPY = {
+  title: "快速测评",
+  progressText: (current: number, total: number) => `已完成 ${current}/${total} 题`,
+  estimatedTime: (minutes: number) => `预计还需 ${minutes} 分钟`,
+  submitButton: "提交测评",
+  submittingButton: "提交中...",
+  encouragement: [
+    "继续保持，马上就好！",
+    "你的回答很有价值，继续！",
+    "快完成了，加油！",
+  ],
+} as const;
 
 // V1.3: 邀请状态页文案
 export const INVITE_STATUS_COPY = {
@@ -34,15 +61,22 @@ export const INVITE_STATUS_COPY = {
   },
 } as const;
 
-// V1.3: 结果页文案
+// v1.5: 结果页文案（重构版）
 export const RESULT_PAGE_COPY = {
+  // 首屏核心
   summaryTitle: "一句话摘要",
   summaryIntro: "这份结果是你在推进不确定事情时的一次节奏快照。",
   archetypeTitle: "行为倾向",
   dimensionsTitle: "行为维度",
-  highlightsTitle: "显著行为特征",
-  nextStepTitle: "下一步建议",
-  nextStepContent: "请联系助教，把这份概览作为沟通起点，获得更具体的下一步推进建议。",
+  highlightsTitle: "你的核心特点",
+  
+  // CTA区域
+  nextStepTitle: "想知道怎么用好这个特点？",
+  nextStepContent: "联系你的专属助教，获取个性化的解读和建议",
   contactCoachTitle: "联系助教",
+  contactCoachButton: "联系助教获取解读",
+  
+  // 详细报告
+  detailTitle: "查看详细报告",
   noHighlights: "暂无可展示的行为点。你可以先完成测评，或联系助教协助核对状态。",
 } as const;
