@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
       if (Number.isNaN(parsedExpiresAt.getTime())) {
         return fail(ErrorCode.VALIDATION_ERROR, "expiresAt 格式错误");
       }
+    } else {
+      // 默认有效期为一周
+      parsedExpiresAt = new Date();
+      parsedExpiresAt.setDate(parsedExpiresAt.getDate() + 7);
     }
 
     // 验证 customer ownership

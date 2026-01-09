@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type TrainingSection = {
   id: string;
@@ -116,7 +117,7 @@ export default function AdminTrainingHandbookPage() {
           .filter(Boolean),
       };
 
-      const res = await fetch(`/api/admin/training-handbook/days/${selectedDay.id}`, {
+      const res = await csrfFetch(`/api/admin/training-handbook/days/${selectedDay.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -141,7 +142,7 @@ export default function AdminTrainingHandbookPage() {
     setSavingHandbook(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/training-handbook", {
+      const res = await csrfFetch("/api/admin/training-handbook", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ version, status: handbookStatusDraft }),
@@ -167,7 +168,7 @@ export default function AdminTrainingHandbookPage() {
     setSavingHandbook(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/training-handbook", {
+      const res = await csrfFetch("/api/admin/training-handbook", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ version, confirmText: input }),
@@ -194,7 +195,7 @@ export default function AdminTrainingHandbookPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/training-handbook/days/${day.id}`, {
+      const res = await csrfFetch(`/api/admin/training-handbook/days/${day.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),
@@ -224,7 +225,7 @@ export default function AdminTrainingHandbookPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/training-handbook/sections/${section.id}`, {
+      const res = await csrfFetch(`/api/admin/training-handbook/sections/${section.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),
@@ -246,7 +247,7 @@ export default function AdminTrainingHandbookPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/training-handbook/sections/${sectionId}`, {
+      const res = await csrfFetch(`/api/admin/training-handbook/sections/${sectionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

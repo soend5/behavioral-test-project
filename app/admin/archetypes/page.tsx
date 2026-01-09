@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type ArchetypeItem = {
   id: string;
@@ -98,7 +99,7 @@ export default function AdminArchetypesPage() {
         status: String(draft.status || "active").trim() || "active",
       };
 
-      const res = await fetch(`/api/admin/archetypes/${editingId}`, {
+      const res = await csrfFetch(`/api/admin/archetypes/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -124,7 +125,7 @@ export default function AdminArchetypesPage() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/archetypes/${editingId}`, {
+      const res = await csrfFetch(`/api/admin/archetypes/${editingId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),

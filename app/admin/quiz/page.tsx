@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState, useMemo, type FormEvent } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 export default function AdminQuizPage() {
   type QuizRow = {
@@ -92,7 +93,7 @@ export default function AdminQuizPage() {
     setSavingSettings(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await csrfFetch("/api/admin/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteDefaultQuizVersion: defaultQuizVersion }),
@@ -120,7 +121,7 @@ export default function AdminQuizPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/quiz/${editingId}`, {
+      const res = await csrfFetch(`/api/admin/quiz/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -151,7 +152,7 @@ export default function AdminQuizPage() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/quiz/${q.id}`, {
+      const res = await csrfFetch(`/api/admin/quiz/${q.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),
@@ -176,7 +177,7 @@ export default function AdminQuizPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/quiz", {
+      const res = await csrfFetch("/api/admin/quiz", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

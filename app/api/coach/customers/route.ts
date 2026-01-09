@@ -99,22 +99,33 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // 获取客户列表（包含最新 attempt）
+    // 获取客户列表（使用 _count 优化查询，避免 N+1）
     const [customers, total] = await Promise.all([
       prisma.customer.findMany({
         where,
         skip,
         take: limit,
         orderBy: { updatedAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          name: true,
+          nickname: true,
+          phone: true,
+          _count: {
+            select: {
+              attempts: {
+                where: { submittedAt: { not: null } },
+              },
+            },
+          },
           attempts: {
-            where: {
-              submittedAt: { not: null },
-            },
-            orderBy: {
-              submittedAt: "desc",
-            },
+            where: { submittedAt: { not: null } },
+            orderBy: { submittedAt: "desc" },
             take: 1,
+            select: {
+              id: true,
+              submittedAt: true,
+            },
           },
         },
       }),
@@ -124,9 +135,9 @@ export async function GET(request: NextRequest) {
     // 处理状态筛选（客户端筛选）
     let filteredCustomers = customers;
     if (status === "completed") {
-      filteredCustomers = customers.filter((c) => c.attempts.length > 0);
+      filteredCustomers = customers.filter((c) => c._count.attempts > 0);
     } else if (status === "not_started") {
-      filteredCustomers = customers.filter((c) => c.attempts.length === 0);
+      filteredCustomers = customers.filter((c) => c._count.attempts === 0);
     }
 
     return ok({

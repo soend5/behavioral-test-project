@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type QuestionRow = {
   id: string;
@@ -91,7 +92,7 @@ export default function QuestionsClient() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/questions/${editingId}`, {
+      const res = await csrfFetch(`/api/admin/questions/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,7 +124,7 @@ export default function QuestionsClient() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/questions/${q.id}`, {
+      const res = await csrfFetch(`/api/admin/questions/${q.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),
@@ -151,7 +152,7 @@ export default function QuestionsClient() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/questions", {
+      const res = await csrfFetch("/api/admin/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

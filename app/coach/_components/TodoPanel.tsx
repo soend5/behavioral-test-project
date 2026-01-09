@@ -11,6 +11,7 @@ type TodoItem = {
   inviteId: string;
   timestamp: string;
   actionUrl: string;
+  daysUntilExpiry?: number;
 };
 
 type TodoSummary = {
@@ -143,7 +144,9 @@ export function TodoPanel() {
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {todos.slice(0, 10).map((todo, index) => {
               const config = TODO_TYPE_CONFIG[todo.type];
-              const timeStr = formatRelativeTime(todo.timestamp);
+              const timeStr = todo.type === "expiring_soon" && todo.daysUntilExpiry !== undefined
+                ? formatExpiryTime(todo.daysUntilExpiry)
+                : formatRelativeTime(todo.timestamp);
               return (
                 <Link
                   key={`${todo.inviteId}-${index}`}
@@ -185,11 +188,10 @@ function formatRelativeTime(isoString: string): string {
 
   if (diffMs < 0) {
     // 未来时间（即将过期）
-    const futureMins = Math.abs(diffMins);
-    const futureHours = Math.abs(diffHours);
-    if (futureMins < 60) return `${futureMins} 分钟后过期`;
+    const futureDays = Math.ceil(Math.abs(diffMs) / 86400000);
+    const futureHours = Math.ceil(Math.abs(diffMs) / 3600000);
     if (futureHours < 24) return `${futureHours} 小时后过期`;
-    return date.toLocaleDateString();
+    return `${futureDays} 天后过期`;
   }
 
   if (diffMins < 1) return "刚刚";
@@ -197,4 +199,10 @@ function formatRelativeTime(isoString: string): string {
   if (diffHours < 24) return `${diffHours} 小时前`;
   if (diffDays < 7) return `${diffDays} 天前`;
   return date.toLocaleDateString();
+}
+
+function formatExpiryTime(daysUntilExpiry: number): string {
+  if (daysUntilExpiry <= 0) return "今天过期";
+  if (daysUntilExpiry === 1) return "明天过期";
+  return `${daysUntilExpiry} 天后过期`;
 }

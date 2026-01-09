@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CoachNav } from "../../_components/CoachNav";
 import { getDisplayTag, getStageDisplay } from "@/lib/tag-display";
 import { COMPLIANCE_NOTICE_CN } from "@/lib/ui-copy";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type CoachTag = { id: string; tagKey: string; createdAt: string };
 type AttemptTimelineItem = {
@@ -144,7 +145,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     setTagSubmitting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/coach/customers/${customerId}/tags`, {
+      const res = await csrfFetch(`/api/coach/customers/${customerId}/tags`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tagKey }),
@@ -167,7 +168,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   async function deleteTag(tagKey: string) {
     setError(null);
     try {
-      const res = await fetch(
+      const res = await csrfFetch(
         `/api/coach/customers/${customerId}/tags?tagKey=${encodeURIComponent(tagKey)}`,
         { method: "DELETE" }
       );

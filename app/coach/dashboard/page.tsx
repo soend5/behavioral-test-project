@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { CoachNav } from "../_components/CoachNav";
 import { TodoPanel } from "../_components/TodoPanel";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type Customer = {
   id: string;
@@ -61,7 +62,7 @@ export default function CoachDashboardPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch("/api/coach/customers", {
+      const res = await csrfFetch("/api/coach/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

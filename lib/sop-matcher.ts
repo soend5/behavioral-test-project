@@ -9,9 +9,11 @@
  * - 输出：Top1 SOP
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { z } from "zod";
 import { safeJsonParseWithSchema } from "./json";
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 const StringArraySchema = z.array(z.string());
 
@@ -27,13 +29,13 @@ interface SopMatchResult {
 
 /**
  * 匹配 SOP
- * @param prisma PrismaClient 实例
+ * @param prisma PrismaClient 或事务客户端实例
  * @param stage 当前阶段（'pre' | 'mid' | 'post'）
  * @param tags 标签数组（包含系统标签和助教标签）
  * @returns 匹配的 SOP 或 null
  */
 export async function matchSOP(
-  prisma: PrismaClient,
+  prisma: DbClient,
   stage: string,
   tags: string[]
 ): Promise<SopMatchResult | null> {
@@ -134,12 +136,12 @@ export async function matchSOP(
 
 /**
  * 获取默认的 realtime_panel（当没有 attempt 时）
- * @param prisma PrismaClient 实例
+ * @param prisma PrismaClient 或事务客户端实例
  * @param stageId 阶段 ID（默认 'pre'）
  * @returns 默认 panel 或 null
  */
 export async function getDefaultRealtimePanel(
-  prisma: PrismaClient,
+  prisma: DbClient,
   stageId: string = "pre"
 ) {
   // 查找默认的 coaching_stage

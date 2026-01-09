@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type OptionRow = {
   id: string;
@@ -107,7 +108,7 @@ export default function OptionsClient() {
       const trimmed = editDraft.scorePayloadJson.trim();
       payload.scorePayloadJson = trimmed ? trimmed : null;
 
-      const res = await fetch(`/api/admin/options/${editingId}`, {
+      const res = await csrfFetch(`/api/admin/options/${editingId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -135,7 +136,7 @@ export default function OptionsClient() {
     setDeleting(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/options/${opt.id}`, {
+      const res = await csrfFetch(`/api/admin/options/${opt.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),
@@ -171,7 +172,7 @@ export default function OptionsClient() {
       if (newStableId.trim()) payload.stableId = newStableId.trim();
       if (newScorePayload.trim()) payload.scorePayloadJson = newScorePayload.trim();
 
-      const res = await fetch("/api/admin/options", {
+      const res = await csrfFetch("/api/admin/options", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -4,7 +4,7 @@
  * 获取助教的待办事项列表
  * - 新完成的测评（最近 24 小时内提交）
  * - 进行中的测评（已开始但未完成）
- * - 即将过期的邀请（24 小时内过期）
+ * - 即将过期的邀请（3 天内过期，提前提醒）
  */
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -22,6 +22,7 @@ type TodoItem = {
   inviteId: string;
   timestamp: string;
   actionUrl: string;
+  daysUntilExpiry?: number; // 距离过期的天数
 };
 
 export async function GET(request: NextRequest) {
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
     const past24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    const next24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    // 提前 3 天提醒即将过期的邀请
+    const next3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
     const todos: TodoItem[] = [];
 
@@ -95,14 +97,14 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 3. 即将过期的邀请（24 小时内过期，且状态为 active）
+    // 3. 即将过期的邀请（3 天内过期，且状态为 active 或 entered）
     const expiringSoon = await prisma.invite.findMany({
       where: {
         coachId,
-        status: "active",
+        status: { in: ["active", "entered"] },
         expiresAt: {
           gte: now,
-          lte: next24h,
+          lte: next3Days,
         },
       },
       include: {
@@ -115,6 +117,9 @@ export async function GET(request: NextRequest) {
     });
 
     for (const invite of expiringSoon) {
+      const expiresAt = invite.expiresAt ? new Date(invite.expiresAt) : now;
+      const daysUntilExpiry = Math.ceil((expiresAt.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      
       todos.push({
         type: "expiring_soon",
         priority: 3,
@@ -123,6 +128,7 @@ export async function GET(request: NextRequest) {
         inviteId: invite.id,
         timestamp: invite.expiresAt?.toISOString() || now.toISOString(),
         actionUrl: `/coach/clients/${invite.customer.id}`,
+        daysUntilExpiry,
       });
     }
 

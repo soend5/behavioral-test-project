@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { generateCsrfToken, getCsrfTokenFromCookie, setCsrfCookie, csrfProtection } from "@/lib/csrf";
 
 export default withAuth(
   function middleware(req) {
@@ -20,7 +21,25 @@ export default withAuth(
       }
     }
 
-    return NextResponse.next();
+    // CSRF 保护（仅对需要认证的 API 路由）
+    if (path.startsWith("/api/admin/") || path.startsWith("/api/coach/")) {
+      if (!csrfProtection(req)) {
+        return NextResponse.json(
+          { ok: false, error: { code: "CSRF_INVALID", message: "CSRF token 验证失败" } },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 确保 CSRF cookie 存在
+    const response = NextResponse.next();
+    const existingToken = getCsrfTokenFromCookie(req);
+    if (!existingToken && (path.startsWith("/admin") || path.startsWith("/coach"))) {
+      const newToken = generateCsrfToken();
+      setCsrfCookie(response, newToken);
+    }
+
+    return response;
   },
   {
     callbacks: {
@@ -33,6 +52,8 @@ export const config = {
   matcher: [
     "/admin/:path*",
     "/coach/:path*",
+    "/api/admin/:path*",
+    "/api/coach/:path*",
   ],
 };
 

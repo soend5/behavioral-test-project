@@ -12,6 +12,8 @@
  * ✅ Ownership：attempt.inviteId === invite.id
  * ✅ 状态机：invite.status 从 'entered' → 'completed'
  * ✅ 幂等性：重复调用返回相同结果
+ * ✅ 速率限制：每分钟 5 次
+ * ✅ SOP 匹配：根据 stage 和 tags 匹配推荐 SOP
  */
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -22,9 +24,11 @@ import {
 } from "@/lib/authz";
 import { writeAudit } from "@/lib/audit";
 import { calculateScores } from "@/lib/scoring";
+import { matchSOP } from "@/lib/sop-matcher";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
 import { safeJsonParse } from "@/lib/json";
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const SubmitAttemptBodySchema = z.object({
@@ -35,6 +39,13 @@ const SubmitAttemptBodySchema = z.object({
 const AnswersSchema = z.record(z.string().min(1), z.string().min(1));
 
 export async function POST(request: NextRequest) {
+  // 速率限制检查
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = checkRateLimit(`attempt-submit:${clientId}`, RATE_LIMITS.submit);
+  if (!rateLimitResult.success) {
+    return fail(ErrorCode.BAD_REQUEST, "请求过于频繁，请稍后再试");
+  }
+
   try {
     let body: unknown;
     try {
@@ -191,6 +202,21 @@ export async function POST(request: NextRequest) {
       const { scoresJson, tagsJson, stage, resultSummaryJson } =
         await calculateScores(answers, options, attemptVersion);
 
+      // 解析 tags 用于 SOP 匹配
+      const tags: string[] = JSON.parse(tagsJson);
+
+      // SOP 匹配：根据 stage 和 tags 匹配推荐 SOP
+      let matchedSopId: string | null = null;
+      try {
+        const sopMatch = await matchSOP(prisma, stage, tags);
+        if (sopMatch) {
+          matchedSopId = sopMatch.sopId;
+        }
+      } catch (e) {
+        // SOP 匹配失败不影响主流程
+        console.error("SOP matching failed:", e);
+      }
+
       await tx.attempt.update({
         where: { id: attemptId },
         data: {
@@ -199,7 +225,7 @@ export async function POST(request: NextRequest) {
           tagsJson,
           stage,
           resultSummaryJson,
-          matchedSopId: null, // MVP 暂不匹配 SOP，保留字段
+          matchedSopId,
         },
       });
 

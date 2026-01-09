@@ -14,6 +14,29 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("开始填充种子数据...");
 
+  // 0. 创建系统用户（用于审计日志，如登录失败记录）
+  const systemUsername = "system";
+  let systemUser = await prisma.user.findUnique({
+    where: { username: systemUsername },
+  });
+
+  if (!systemUser) {
+    // 系统用户使用随机密码，不可登录
+    const systemPasswordHash = await bcrypt.hash(crypto.randomUUID(), 10);
+    systemUser = await prisma.user.create({
+      data: {
+        id: "system", // 固定 ID，便于引用
+        username: systemUsername,
+        passwordHash: systemPasswordHash,
+        role: "admin",
+        status: "inactive", // 不可登录
+      },
+    });
+    console.log(`✅ 创建系统用户: ${systemUsername}`);
+  } else {
+    console.log(`ℹ️  系统用户已存在: ${systemUsername}`);
+  }
+
   // 1. 创建 admin 账号（幂等）
   const adminUsername = "admin";
   let admin = await prisma.user.findUnique({
@@ -21,7 +44,13 @@ async function main() {
   });
 
   if (!admin) {
-    const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    if (!adminPassword) {
+      throw new Error("Missing ADMIN_PASSWORD environment variable. Please set a strong password.");
+    }
+    if (adminPassword.length < 8) {
+      throw new Error("ADMIN_PASSWORD must be at least 8 characters long.");
+    }
     const adminPasswordHash = await bcrypt.hash(adminPassword, 10);
 
     admin = await prisma.user.create({
@@ -44,7 +73,13 @@ async function main() {
   });
 
   if (!coach) {
-    const coachPassword = process.env.COACH_PASSWORD || "coach123";
+    const coachPassword = process.env.COACH_PASSWORD;
+    if (!coachPassword) {
+      throw new Error("Missing COACH_PASSWORD environment variable. Please set a strong password.");
+    }
+    if (coachPassword.length < 8) {
+      throw new Error("COACH_PASSWORD must be at least 8 characters long.");
+    }
     const coachPasswordHash = await bcrypt.hash(coachPassword, 10);
 
     coach = await prisma.user.create({

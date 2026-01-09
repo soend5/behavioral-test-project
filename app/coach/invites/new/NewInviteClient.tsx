@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CoachNav } from "../../_components/CoachNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type Customer = {
   id: string;
@@ -44,6 +45,21 @@ export default function NewInviteClient() {
   const [expiresAt, setExpiresAt] = useState("");
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState<CreatedInvite | null>(null);
+
+  // 计算默认过期时间（一周后）
+  const defaultExpiresAt = useMemo(() => {
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    // 格式化为 datetime-local 需要的格式
+    return date.toISOString().slice(0, 16);
+  }, []);
+
+  // 初始化默认过期时间
+  useEffect(() => {
+    if (!expiresAt) {
+      setExpiresAt(defaultExpiresAt);
+    }
+  }, [defaultExpiresAt, expiresAt]);
 
   const selectedCustomer = useMemo(() => {
     return customers.find((c) => c.id === customerId) || null;
@@ -103,7 +119,7 @@ export default function NewInviteClient() {
     setCreated(null);
 
     try {
-      const res = await fetch("/api/coach/invites", {
+      const res = await csrfFetch("/api/coach/invites", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -203,7 +219,7 @@ export default function NewInviteClient() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                过期时间（可选）
+                过期时间
               </label>
               <input
                 type="datetime-local"
@@ -212,7 +228,7 @@ export default function NewInviteClient() {
                 className="w-full border rounded px-3 py-2"
               />
               <p className="text-xs text-gray-500 mt-1">
-                不设置则永不过期（由助教手动设为失效，或参与者提交后完成）。
+                默认有效期为一周。即将过期时（提前 3 天）会在待办事项中提醒。
               </p>
             </div>
 

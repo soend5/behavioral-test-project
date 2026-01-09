@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { COMPLIANCE_NOTICE_CN, PRODUCT_NAME_CN, PRODUCT_TAGLINE_CN } from "@/lib/ui-copy";
 
 export default function Home() {
@@ -10,21 +9,6 @@ export default function Home() {
             {PRODUCT_NAME_CN}
           </h1>
           <p className="mt-4 text-lg text-gray-600">{PRODUCT_TAGLINE_CN}</p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link
-              href="/coach/login"
-              className="px-5 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-            >
-              助教登录
-            </Link>
-            <Link
-              href="/admin/login"
-              className="px-5 py-2 rounded bg-white border border-gray-200 hover:bg-gray-50"
-            >
-              管理后台
-            </Link>
-          </div>
 
           <div className="mt-6 mx-auto max-w-2xl rounded border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
             {COMPLIANCE_NOTICE_CN}

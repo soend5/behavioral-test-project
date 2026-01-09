@@ -201,11 +201,48 @@ export async function requireCoachOwnsAttempt(
 type InviteWithRelations = Prisma.InviteGetPayload<{
   include: {
     customer: true;
-    coach: { select: { id: true; username: true } };
+    coach: { select: { id: true; username: true; name: true; wechatQrcode: true } };
   };
 }>;
 
 type InviteWithoutRelations = Prisma.InviteGetPayload<{}>;
+
+/**
+ * 检查并处理邀请过期状态
+ * 强制更新数据库状态，确保过期邀请不可用
+ */
+async function checkAndHandleInviteExpiry<T extends { id: string; status: string; expiresAt: Date | null }>(
+  prisma: DbClient,
+  invite: T,
+  allowStatuses: string[]
+): Promise<T> {
+  // 检查是否过期
+  if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+    const allowExpired = allowStatuses.includes("expired");
+    
+    // expiresAt 到期时，强制将状态落库为 expired
+    if (invite.status !== "expired" && invite.status !== "completed") {
+      await prisma.invite.update({
+        where: { id: invite.id },
+        data: { status: "expired" },
+      });
+      // 更新内存中的状态
+      invite.status = "expired";
+    }
+
+    // allowStatuses 包含 expired（例如 resolve/result）时允许只读访问
+    if (!allowExpired) {
+      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+    }
+  }
+
+  // 检查状态是否允许
+  if (!allowStatuses.includes(invite.status)) {
+    throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
+  }
+
+  return invite;
+}
 
 /**
  * 通过 token 获取 invite（含状态校验）
@@ -257,6 +294,8 @@ export async function requireInviteByToken(
           select: {
             id: true,
             username: true,
+            name: true,
+            wechatQrcode: true,
           },
         },
       },
@@ -266,38 +305,7 @@ export async function requireInviteByToken(
       throw new Error(ErrorCode.INVITE_INVALID);
     }
 
-    // 检查是否过期
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-      const allowExpired = allowStatuses.includes("expired");
-      // expiresAt 到期时，将状态落库为 expired（best-effort）
-      if (invite.status !== "expired" && invite.status !== "completed") {
-        try {
-          await prisma.invite.update({
-            where: { id: invite.id },
-            data: { status: "expired" },
-          });
-        } catch (e) {
-          console.error("Failed to persist invite expiry:", e);
-        }
-      }
-
-      // allowStatuses 包含 expired（例如 resolve/result）时允许只读访问
-      if (!allowExpired) {
-        throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-      }
-
-      // 运行时把状态视为 expired（便于上层逻辑/展示）
-      if (invite.status !== "completed") {
-        invite.status = "expired";
-      }
-    }
-
-    // 检查状态是否允许
-    if (!allowStatuses.includes(invite.status)) {
-      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-    }
-
-    return invite;
+    return checkAndHandleInviteExpiry(prisma, invite, allowStatuses);
   } else {
     const invite = await prisma.invite.findFirst({
       where: { tokenHash },
@@ -307,38 +315,7 @@ export async function requireInviteByToken(
       throw new Error(ErrorCode.INVITE_INVALID);
     }
 
-    // 检查是否过期
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-      const allowExpired = allowStatuses.includes("expired");
-      // expiresAt 到期时，将状态落库为 expired（best-effort）
-      if (invite.status !== "expired" && invite.status !== "completed") {
-        try {
-          await prisma.invite.update({
-            where: { id: invite.id },
-            data: { status: "expired" },
-          });
-        } catch (e) {
-          console.error("Failed to persist invite expiry:", e);
-        }
-      }
-
-      // allowStatuses 包含 expired（例如 resolve/result）时允许只读访问
-      if (!allowExpired) {
-        throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-      }
-
-      // 运行时把状态视为 expired（便于上层逻辑/展示）
-      if (invite.status !== "completed") {
-        invite.status = "expired";
-      }
-    }
-
-    // 检查状态是否允许
-    if (!allowStatuses.includes(invite.status)) {
-      throw new Error(ErrorCode.INVITE_EXPIRED_OR_COMPLETED);
-    }
-
-    return invite;
+    return checkAndHandleInviteExpiry(prisma, invite, allowStatuses);
   }
 }
 
@@ -416,4 +393,3 @@ export function assertAttemptNotSubmitted(attempt: {
     throw new Error(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
   }
 }
-

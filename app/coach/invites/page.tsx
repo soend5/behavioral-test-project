@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CoachNav } from "../_components/CoachNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type Invite = {
   id: string;
@@ -61,7 +62,7 @@ export default function InvitesPage() {
   async function expire(inviteId: string) {
     setError(null);
     try {
-      const res = await fetch(`/api/coach/invites/${inviteId}/expire`, {
+      const res = await csrfFetch(`/api/coach/invites/${inviteId}/expire`, {
         method: "POST",
       });
       const json = (await res.json()) as ApiResponse<{ invite: unknown }>;

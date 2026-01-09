@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type CoachStatus = "active" | "inactive";
 type Coach = {
@@ -69,7 +70,7 @@ export default function AdminCoachesPage() {
     setCreating(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/coaches", {
+      const res = await csrfFetch("/api/admin/coaches", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,7 +98,7 @@ export default function AdminCoachesPage() {
   async function patchCoach(id: string, payload: { status?: CoachStatus; password?: string }) {
     setError(null);
     try {
-      const res = await fetch(`/api/admin/coaches/${id}`, {
+      const res = await csrfFetch(`/api/admin/coaches/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

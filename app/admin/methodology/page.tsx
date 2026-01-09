@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AdminNav } from "../_components/AdminNav";
+import { csrfFetch } from "@/lib/csrf-client";
 
 type MethodologySection = {
   id: string;
@@ -89,7 +90,7 @@ export default function AdminMethodologyPage() {
         titleCn: String(draft.titleCn || "").trim(),
         contentMarkdown: String(draft.contentMarkdown || "").trim(),
       };
-      const res = await fetch(`/api/admin/methodology/sections/${selected.id}`, {
+      const res = await csrfFetch(`/api/admin/methodology/sections/${selected.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -113,7 +114,7 @@ export default function AdminMethodologyPage() {
     setSavingDoc(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/methodology", {
+      const res = await csrfFetch("/api/admin/methodology", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ version, status: docStatusDraft }),
@@ -139,7 +140,7 @@ export default function AdminMethodologyPage() {
     setSavingDoc(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/methodology", {
+      const res = await csrfFetch("/api/admin/methodology", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ version, confirmText: input }),
@@ -164,7 +165,7 @@ export default function AdminMethodologyPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/methodology/sections/${section.id}`, {
+      const res = await csrfFetch(`/api/admin/methodology/sections/${section.id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmText: input }),

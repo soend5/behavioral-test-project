@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getDisplayTag, pickHighlightBehaviorTags } from "@/lib/tag-display";
@@ -137,7 +138,7 @@ export default function ResultPage({ params }: { params: { token: string } }) {
                 <p className="font-medium">{getSummaryText()}</p>
                 {archetype && (
                   <div className="mt-3 p-3 bg-blue-50 border border-blue-100 rounded">
-                    <div className="text-blue-900 italic">"{archetype.oneLinerCn}"</div>
+                    <div className="text-blue-900 italic">&ldquo;{archetype.oneLinerCn}&rdquo;</div>
                     {archetype.traitsCn.length > 0 && (
                       <ul className="mt-2 text-sm text-blue-800 space-y-1">
                         {archetype.traitsCn.slice(0, 2).map((trait, i) => (
@@ -232,10 +233,12 @@ export default function ResultPage({ params }: { params: { token: string } }) {
                   </div>
                   {coach.wechatQrcode && (
                     <div className="flex-shrink-0">
-                      <img
+                      <Image
                         src={coach.wechatQrcode}
                         alt="助教微信二维码"
-                        className="w-32 h-32 rounded border"
+                        width={128}
+                        height={128}
+                        className="rounded border"
                       />
                     </div>
                   )}

@@ -9,6 +9,7 @@
  * ✅ Token 校验：hash(token) == invites.token_hash
  * ✅ 状态机：invite.status 从 'active' → 'entered'
  * ✅ 幂等性：重复调用返回相同的 attemptId
+ * ✅ 速率限制：每分钟 30 次
  */
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
@@ -20,6 +21,7 @@ import {
 import { writeAudit } from "@/lib/audit";
 import { ok, fail } from "@/lib/apiResponse";
 import { ErrorCode } from "@/lib/errors";
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from "@/lib/rate-limit";
 import { z } from "zod";
 
 const StartAttemptBodySchema = z.object({
@@ -27,6 +29,13 @@ const StartAttemptBodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  // 速率限制检查
+  const clientId = getClientIdentifier(request);
+  const rateLimitResult = checkRateLimit(`attempt-start:${clientId}`, RATE_LIMITS.public);
+  if (!rateLimitResult.success) {
+    return fail(ErrorCode.BAD_REQUEST, "请求过于频繁，请稍后再试");
+  }
+
   try {
     let body: unknown;
     try {
